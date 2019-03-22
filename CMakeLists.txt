@@ -38,6 +38,10 @@ endif()
 
 find_package(Eigen3 3.1.0 REQUIRED)
 find_package(Pangolin REQUIRED)
+find_package(Boost  1.54.0  	     # Minimum or EXACT version e.g. 1.36.0
+  REQUIRED             					# Fail with error if Boost is not found
+  COMPONENTS serialization 				# Boost libraries by their canonical name
+  )          
 
 include_directories(
 ${PROJECT_SOURCE_DIR}
@@ -76,6 +80,7 @@ ${EIGEN3_LIBS}
 ${Pangolin_LIBRARIES}
 ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
+${Boost_LIBRARIES}
 )
 
 # Build examples
@@ -110,4 +115,10 @@ target_link_libraries(mono_kitti ${PROJECT_NAME})
 add_executable(mono_euroc
 Examples/Monocular/mono_euroc.cc)
 target_link_libraries(mono_euroc ${PROJECT_NAME})
+
+# Build tools
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/build)
+add_executable(binarize
+Vocabulary/binarize.cc)
+target_link_libraries(binarize ${PROJECT_NAME})
 
