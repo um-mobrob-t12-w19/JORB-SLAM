@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo apt install libgtk-3-dev -y
+sudo apt install libglew-dev -y
 
 cd /tmp
 git clone https://github.com/stevenlovegrove/Pangolin.git
