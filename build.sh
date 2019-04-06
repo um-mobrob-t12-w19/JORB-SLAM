@@ -4,7 +4,8 @@ cd Thirdparty/DBoW2
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
+make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 
 cd ../../g2o
 
@@ -13,7 +14,8 @@ echo "Configuring and building Thirdparty/g2o ..."
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
+make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 
 cd ../../Pangolin/
 
@@ -22,7 +24,8 @@ echo "Configuring and building Thirdparty/Pangolin ..."
 mkdir build
 cd build
 cmake .. -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF
-cmake --build -j$(nproc)
+num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
+make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 
 cd ../../../
 
@@ -37,7 +40,8 @@ echo "Configuring and building ORB_SLAM2 ..."
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
-make -j$(nproc)
+num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
+make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 cd ..
 
 echo "Converting vocabulary to binary"
