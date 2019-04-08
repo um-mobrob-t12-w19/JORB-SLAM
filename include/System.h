@@ -23,6 +23,7 @@
 #define SYSTEM_H
 
 #include<string>
+#include <memory>
 #include<thread>
 #include<opencv2/core/core.hpp>
 
@@ -35,6 +36,7 @@
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
 #include "Viewer.h"
+#include "Server.h"
 
 namespace ORB_SLAM2
 {
@@ -45,6 +47,7 @@ class Map;
 class Tracking;
 class LocalMapping;
 class LoopClosing;
+class Server;
 
 class System
 {
@@ -122,6 +125,8 @@ public:
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
+    void RegisterServer(std::shared_ptr<Server> server);
+
 private:
 
     // Input sensor
@@ -153,6 +158,8 @@ private:
 
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
+
+    std::shared_ptr<Server> server;
 
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.

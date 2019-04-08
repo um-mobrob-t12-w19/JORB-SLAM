@@ -494,4 +494,9 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
     return mTrackedKeyPointsUn;
 }
 
+void System::RegisterServer(std::shared_ptr<Server> server) {
+    this->server = server;
+}
+
+
 } //namespace ORB_SLAM
