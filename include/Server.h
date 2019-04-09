@@ -9,7 +9,7 @@
 
 #include <yaml-cpp/yaml.h>
 
-#include "LoopClosing.h"
+#include "GlobalLoopClosing.h"
 #include "Map.h"
 #include "System.h"
 #include "KeyFrameDatabase.h"
@@ -19,7 +19,7 @@ namespace ORB_SLAM2
 {
 
 class System;
-class LoopClosing;
+class GlobalLoopClosing;
 class Map;
 class KeyFrameDatabase;
 
@@ -51,7 +51,7 @@ private:
 
     std::shared_ptr<Map> globalMap;
     std::shared_ptr<KeyFrameDatabase> globalDatabase;
-    std::shared_ptr<LoopClosing> loopClosing;
+    std::shared_ptr<GlobalLoopClosing> globalLoopClosing;
 
 };
 

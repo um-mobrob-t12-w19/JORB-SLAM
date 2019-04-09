@@ -34,11 +34,9 @@ Server::Server(const std::string &configFile, const string &strVocFile) : stoppe
 
     globalMap = std::shared_ptr<Map>(new Map());
     globalDatabase = std::shared_ptr<KeyFrameDatabase>(new KeyFrameDatabase(*vocabulary));
-    loopClosing = std::shared_ptr<LoopClosing>(new LoopClosing(globalMap.get(), globalDatabase.get(), vocabulary.get(), !monocular));
+    globalLoopClosing = std::shared_ptr<GlobalLoopClosing>(new GlobalLoopClosing(globalMap.get(), globalDatabase.get(), vocabulary.get(), !monocular));
 
-    globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&Server::Run, this));
-
-
+    globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&GlobalLoopClosing::Run, globalLoopClosing.get()));
 
     std::cout << "Server started" << std::endl;
 }
