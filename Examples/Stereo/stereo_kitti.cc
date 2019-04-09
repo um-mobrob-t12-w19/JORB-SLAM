@@ -32,8 +32,9 @@
 #include <Server.h>
 using namespace std;
 
-void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeft,
-                vector<string> &vstrImageRight, vector<double> &vTimestamps);
+void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeftSetA,
+                vector<string> &vstrImageRightSetA, vector<string> &vstrImageLeftSetB,
+				vector<string> &vstrImageRightSetB, vector<double> &vTimestamps);
 
 int main(int argc, char **argv)
 {
@@ -55,12 +56,12 @@ int main(int argc, char **argv)
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO,true));
-	//std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, true));
+	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, true));
 
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
     server->RegisterClient(SLAM1);
-    //server->RegisterClient(SLAM2);
+    server->RegisterClient(SLAM2);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
