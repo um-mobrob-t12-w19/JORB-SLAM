@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <vector>
+#include <thread>
+#include <atomic>
 
 #include "System.h"
 
@@ -19,7 +21,11 @@ public:
     // Initialize the server. It launches the global map loop closing thread
     Server();
 
+    // Stops all threads
     void Shutdown();
+
+    // Runs the global mapping
+    void Run();
 
     // Registers an ORBSLAM System as a client which needs to be synced with the global map
     void RegisterClient(std::shared_ptr<System> client);
@@ -27,6 +33,8 @@ public:
 private:
 
     std::vector<std::shared_ptr<System>> clients;
+    std::shared_ptr<std::thread> globalMappingThread;
+    std::atomic_bool stopped;
 
 };
 
