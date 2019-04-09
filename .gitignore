@@ -11,6 +11,8 @@ Examples/ROS/ORB_SLAM2/Stereo
 Examples/ROS/ORB_SLAM2/build/
 Examples/Stereo/stereo_euroc
 Examples/Stereo/stereo_kitti
+Examples/Stereo-Kaustav/
+Examples/Stereo-Kaustav.zip
 KeyFrameTrajectory.txt
 Thirdparty/DBoW2/build/
 Thirdparty/DBoW2/lib/
@@ -25,3 +27,4 @@ lib/
 .vscode/
 datasets
 CameraTrajectory.txt
+
