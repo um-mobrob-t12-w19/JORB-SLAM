@@ -25,6 +25,7 @@ build/
 *~
 lib/
 .vscode/
+.vs/
 datasets
 CameraTrajectory.txt
 
