@@ -44,18 +44,22 @@ int main(int argc, char **argv)
     }
 
     // Retrieve paths to images
-    vector<string> vstrImageLeft;
-    vector<string> vstrImageRight;
+    vector<string> vstrImageLeftSetA;
+    vector<string> vstrImageRightSetA;
+	vector<string> vstrImageLeftSetB;
+	vector<string> vstrImageRightSetB;
     vector<double> vTimestamps;
-    LoadImages(string(argv[3]), vstrImageLeft, vstrImageRight, vTimestamps);
+    LoadImages(string(argv[3]), vstrImageLeftSetA, vstrImageRightSetA, vstrImageLeftSetB, vstrImageRightSetB, vTimestamps);
 
-    const int nImages = vstrImageLeft.size();
+    const int nImages = vstrImageLeftSetA.size();
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO,true));
+	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, true));
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server());
 
     server->RegisterClient(SLAM1);
+	server->RegisterClient(SLAM2);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -66,20 +70,28 @@ int main(int argc, char **argv)
     cout << "Images in the sequence: " << nImages << endl << endl;   
 
     // Main loop
-    cv::Mat imLeft, imRight;
+    cv::Mat imLeftA, imRightA, imLeftB, imRightB;
     for(int ni=0; ni<nImages; ni++)
     {
         // Read left and right images from file
-        imLeft = cv::imread(vstrImageLeft[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imRight = cv::imread(vstrImageRight[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imLeftA = cv::imread(vstrImageLeftSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imRightA = cv::imread(vstrImageRightSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
+		imLeftB = cv::imread(vstrImageLeftSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
+		imRightB = cv::imread(vstrImageRightSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
         double tframe = vTimestamps[ni];
 
-        if(imLeft.empty())
+        if(imLeftA.empty())
         {
             cerr << endl << "Failed to load image at: "
-                 << string(vstrImageLeft[ni]) << endl;
+                 << string(vstrImageLeftSetA[ni]) << endl;
             return 1;
         }
+		if (imLeftB.empty())
+		{
+			cerr << endl << "Failed to load image at: "
+				<< string(vstrImageLeftSetB[ni]) << endl;
+			return 1;
+		}
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
@@ -88,7 +100,8 @@ int main(int argc, char **argv)
 #endif
 
         // Pass the images to the SLAM system
-        SLAM1->TrackStereo(imLeft,imRight,tframe);
+        SLAM1->TrackStereo(imLeftA,imRightA,tframe);
+		SLAM2->TrackStereo(imLeftB,imRightB,tframe);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
@@ -113,6 +126,7 @@ int main(int argc, char **argv)
 
     // Stop all threads
     SLAM1->Shutdown();
+	SLAM2->Shutdown();
     server->Shutdown();
 
     // Tracking time statistics
@@ -127,13 +141,15 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM1->SaveTrajectoryKITTI("CameraTrajectory.txt");
+    SLAM1->SaveTrajectoryKITTI("CameraTrajectoryA.txt");
+	SLAM2->SaveTrajectoryKITTI("CameraTrajectoryB.txt");
 
     return 0;
 }
 
-void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeft,
-                vector<string> &vstrImageRight, vector<double> &vTimestamps)
+void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeftSetA,
+                vector<string> &vstrImageRightSetA, vector<string> &vstrImageLeftSetB,
+				vector<string> &vstrImageRightSetB, vector<double> &vTimestamps)
 {
     ifstream fTimes;
     string strPathTimeFile = strPathToSequence + "/times.txt";
@@ -156,14 +172,28 @@ void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeft,
     string strPrefixRight = strPathToSequence + "/image_1/";
 
     const int nTimes = vTimestamps.size();
-    vstrImageLeft.resize(nTimes);
-    vstrImageRight.resize(nTimes);
+	if (nTimes % 2 != 0) {
+		cout << "Expecting off by one error in for loop below (stereo_kitti::LoadImages)";
+		cout << "May also need to adjust main above (stereo_kitti::main)";
+	}
+	const int setSize = nTimes / 2;
+    vstrImageLeftSetA.resize(setSize);
+    vstrImageRightSetA.resize(setSize);
+	vstrImageLeftSetB.resize(setSize);
+	vstrImageRightSetB.resize(setSize);
 
     for(int i=0; i<nTimes; i++)
     {
         stringstream ss;
         ss << setfill('0') << setw(6) << i;
-        vstrImageLeft[i] = strPrefixLeft + ss.str() + ".png";
-        vstrImageRight[i] = strPrefixRight + ss.str() + ".png";
+		if (i <= nTimes/2) {
+			vstrImageLeftSetA[i] = strPrefixLeft + ss.str() + ".png";
+			vstrImageRightSetA[i] = strPrefixRight + ss.str() + ".png";
+		}
+		else 
+		{
+			vstrImageLeftSetB[i] = strPrefixLeft + ss.str() + ".png";
+			vstrImageRightSetB[i] = strPrefixRight + ss.str() + ".png";
+		}
     }
 }
