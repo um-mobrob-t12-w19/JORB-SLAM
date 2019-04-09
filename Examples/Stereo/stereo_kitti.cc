@@ -37,9 +37,9 @@ void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeft,
 
 int main(int argc, char **argv)
 {
-    if(argc != 4)
+    if(argc != 5)
     {
-        cerr << endl << "Usage: ./stereo_kitti path_to_vocabulary path_to_settings path_to_sequence" << endl;
+        cerr << endl << "Usage: ./stereo_kitti path_to_vocabulary path_to_settings path_to_sequence path_to_server_settings" << endl;
         return 1;
     }
 
@@ -53,9 +53,13 @@ int main(int argc, char **argv)
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO,true));
-    std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server());
+    // std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO,true));
+
+    // Start server
+    std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
     server->RegisterClient(SLAM1);
+    // server->RegisterClient(SLAM2);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
