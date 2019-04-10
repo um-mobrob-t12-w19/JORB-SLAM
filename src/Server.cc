@@ -66,9 +66,13 @@ void Server::RegisterClient(std::shared_ptr<System> client) {
     client->RegisterServer(std::shared_ptr<Server>(this));
 }
 
+void Server::InsertNewMapPoint(MapPoint* mapPoint) {
+    // TODO: implement
+}
+
 void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
-    // KeyFrame newKeyFrame;
-    // globalLoopClosing->InsertKeyFrame()
+    KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap.get(), globalDatabase.get(), mapPointDictionary);
+    globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }
 
 

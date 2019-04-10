@@ -6,6 +6,7 @@
 #include <thread>
 #include <atomic>
 #include <string>
+#include <unordered_map>
 
 #include <yaml-cpp/yaml.h>
 
@@ -40,6 +41,8 @@ public:
     // Registers an ORBSLAM System as a client which needs to be synced with the global map
     void RegisterClient(std::shared_ptr<System> client);
 
+    void InsertNewMapPoint(MapPoint* mapPoint);
+    
     void InsertNewKeyFrame(KeyFrame* keyframe);
 
 private:
@@ -54,6 +57,9 @@ private:
     std::shared_ptr<Map> globalMap;
     std::shared_ptr<KeyFrameDatabase> globalDatabase;
     std::shared_ptr<GlobalLoopClosing> globalLoopClosing;
+
+    std::unordered_map<MapPoint*, MapPoint*> mapPointDictionary;
+    std::unordered_map<KeyFrame*, KeyFrame*> keyFrameDictionary;
 
 };
 

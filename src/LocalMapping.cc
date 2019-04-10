@@ -85,7 +85,12 @@ void LocalMapping::Run()
                 KeyFrameCulling();
             }
 
-            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+
+            // TODO: Sync keyframes with client sync
+            // clientSync->InsertKeyFrame(mpCurrentKeyFrame);
+
+            // Disable client loop closing
+            // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())
         {

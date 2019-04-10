@@ -1118,6 +1118,9 @@ void Tracking::CreateNewKeyFrame()
                     pNewMP->UpdateNormalAndDepth();
                     mpMap->AddMapPoint(pNewMP);
 
+                    // TODO: Sync the new points with the server
+                    // ClientSync->AddMapPoint(pNewMP);
+
                     mCurrentFrame.mvpMapPoints[i]=pNewMP;
                     nPoints++;
                 }
