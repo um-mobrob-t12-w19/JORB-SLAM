@@ -175,8 +175,8 @@ void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeftSe
 
     const int nTimes = vTimestamps.size();
 	if (nTimes % 2 != 0) {
-		cout << "Expecting off by one error in for loop below (stereo_kitti::LoadImages)";
-		cout << "May also need to adjust main above (stereo_kitti::main)";
+		cout << "Expecting off by one error in for loop below (stereo_kitti::LoadImages)\n";
+		cout << "May also need to adjust main above (stereo_kitti::main)\n";
 	}
 	const int setSize = nTimes / 2;
     vstrImageLeftSetA.resize(setSize);
@@ -188,14 +188,14 @@ void LoadImages(const string &strPathToSequence, vector<string> &vstrImageLeftSe
     {
         stringstream ss;
         ss << setfill('0') << setw(6) << i;
-		if (i <= nTimes/2) {
+		if (i < setSize) {
 			vstrImageLeftSetA[i] = strPrefixLeft + ss.str() + ".png";
 			vstrImageRightSetA[i] = strPrefixRight + ss.str() + ".png";
 		}
 		else 
 		{
-			vstrImageLeftSetB[i] = strPrefixLeft + ss.str() + ".png";
-			vstrImageRightSetB[i] = strPrefixRight + ss.str() + ".png";
+			vstrImageLeftSetB[i-setSize] = strPrefixLeft + ss.str() + ".png";
+			vstrImageRightSetB[i-setSize] = strPrefixRight + ss.str() + ".png";
 		}
     }
 }
