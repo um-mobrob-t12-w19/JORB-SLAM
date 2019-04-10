@@ -13,6 +13,7 @@ ClientSync::ClientSync(Map* map) : map(map), finished(false)
 void ClientSync::Run() 
 {
     while(!finished) {
+        
         std::this_thread::sleep_for(5s);
     }
 }

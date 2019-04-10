@@ -66,4 +66,10 @@ void Server::RegisterClient(std::shared_ptr<System> client) {
     client->RegisterServer(std::shared_ptr<Server>(this));
 }
 
+void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
+    // KeyFrame newKeyFrame;
+    // globalLoopClosing->InsertKeyFrame()
+}
+
+
 }

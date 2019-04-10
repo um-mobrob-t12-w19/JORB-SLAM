@@ -40,6 +40,8 @@ public:
     // Registers an ORBSLAM System as a client which needs to be synced with the global map
     void RegisterClient(std::shared_ptr<System> client);
 
+    void InsertNewKeyFrame(KeyFrame* keyframe);
+
 private:
     YAML::Node config;
 

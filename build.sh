@@ -41,7 +41,7 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
-make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
+make stereo_kitti -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 cd ..
 
 echo "Converting vocabulary to binary"
