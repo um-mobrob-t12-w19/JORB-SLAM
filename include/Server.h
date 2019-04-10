@@ -42,7 +42,7 @@ public:
     void RegisterClient(std::shared_ptr<System> client);
 
     void InsertNewMapPoint(MapPoint* mapPoint);
-    
+
     void InsertNewKeyFrame(KeyFrame* keyframe);
 
 private:

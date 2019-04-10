@@ -40,6 +40,11 @@ void LocalMapping::SetLoopCloser(LoopClosing* pLoopCloser)
     mpLoopCloser = pLoopCloser;
 }
 
+void LocalMapping::SetClientSyncer(ClientSync* sync) {
+    syncer = sync;
+}
+
+
 void LocalMapping::SetTracker(Tracking *pTracker)
 {
     mpTracker=pTracker;
@@ -87,7 +92,7 @@ void LocalMapping::Run()
 
 
             // TODO: Sync keyframes with client sync
-            // clientSync->InsertKeyFrame(mpCurrentKeyFrame);
+            syncer->AddKeyFrame(mpCurrentKeyFrame);
 
             // Disable client loop closing
             // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);

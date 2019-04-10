@@ -26,6 +26,7 @@
 #include "LoopClosing.h"
 #include "Tracking.h"
 #include "KeyFrameDatabase.h"
+#include "ClientSync.h"
 
 #include <mutex>
 
@@ -36,6 +37,7 @@ namespace ORB_SLAM2
 class Tracking;
 class LoopClosing;
 class Map;
+class ClientSync;
 
 class LocalMapping
 {
@@ -43,6 +45,8 @@ public:
     LocalMapping(Map* pMap, const float bMonocular);
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
+
+    void SetClientSyncer(ClientSync* sync);
 
     void SetTracker(Tracking* pTracker);
 
@@ -102,6 +106,7 @@ protected:
     Map* mpMap;
 
     LoopClosing* mpLoopCloser;
+    ClientSync* syncer;
     Tracking* mpTracker;
 
     std::list<KeyFrame*> mlNewKeyFrames;

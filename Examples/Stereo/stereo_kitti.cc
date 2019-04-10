@@ -58,12 +58,12 @@ int main(int argc, char **argv)
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO, string("SLAM1"), true));
-	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
+	// std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
 
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
     server->RegisterClient(SLAM1);
-    server->RegisterClient(SLAM2);
+    // server->RegisterClient(SLAM2);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
         cout << vTimestampsA[ni] << " ====== " << vTimestampsB[ni] << endl;
         // Pass the images to the SLAM system
         SLAM1->TrackStereo(imLeftA,imRightA,vTimestampsA[ni]);
-        SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
+        // SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
     // Stop all threads
     SLAM1->Shutdown();
-    SLAM2->Shutdown();
+    // SLAM2->Shutdown();
     server->Shutdown();
 
     // Tracking time statistics
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
     // Save camera trajectory
     SLAM1->SaveTrajectoryKITTI("CameraTrajectoryA.txt");
-    SLAM2->SaveTrajectoryKITTI("CameraTrajectoryB.txt");
+    // SLAM2->SaveTrajectoryKITTI("CameraTrajectoryB.txt");
 
     return 0;
 }

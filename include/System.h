@@ -37,6 +37,7 @@
 #include "ORBVocabulary.h"
 #include "Viewer.h"
 #include "Server.h"
+#include "ClientSync.h"
 
 namespace ORB_SLAM2
 {
@@ -48,6 +49,7 @@ class Tracking;
 class LocalMapping;
 class LoopClosing;
 class Server;
+class ClientSync;
 
 class System
 {
@@ -156,6 +158,8 @@ private:
     // The viewer draws the map and the current camera pose. It uses Pangolin.
     Viewer* mpViewer;
 
+    ClientSync* syncer;
+
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
 
@@ -166,6 +170,7 @@ private:
     std::thread* mptLocalMapping;
     std::thread* mptLoopClosing;
     std::thread* mptViewer;
+    std::thread* syncerThread;
 
     // Reset flag
     std::mutex mMutexReset;

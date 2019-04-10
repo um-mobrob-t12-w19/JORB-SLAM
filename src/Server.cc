@@ -71,7 +71,25 @@ void Server::InsertNewMapPoint(MapPoint* mapPoint) {
 }
 
 void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
-    KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap.get(), globalDatabase.get(), mapPointDictionary);
+    KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap.get(), globalDatabase.get());
+    
+    size_t i = 0;
+    for(MapPoint* point : keyframe->GetMapPoints()) {
+        if(!point) {
+            continue;
+        } else if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
+            // Point not in server map
+            MapPoint* newMapPoint = new MapPoint(point->GetWorldPos(), newKeyFrame, globalMap.get());
+            newMapPoint->AddObservation(newKeyFrame,i);
+            newKeyFrame->AddMapPoint(point,i);
+            newMapPoint->ComputeDistinctiveDescriptors();
+            newMapPoint->UpdateNormalAndDepth();
+            globalMap->AddMapPoint(newMapPoint);
+        } else {
+            newKeyFrame->AddMapPoint(mapPointDictionary[point], i);
+        }
+    } 
+
     globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }
 

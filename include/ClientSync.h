@@ -6,6 +6,8 @@
 #include <thread>
 #include <atomic>
 #include <string>
+#include <mutex>
+#include <queue>
 
 #include <yaml-cpp/yaml.h>
 
@@ -14,14 +16,16 @@
 #include "System.h"
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
+#include "KeyFrame.h"
+#include "MapPoint.h"
+#include "Server.h"
 
 namespace ORB_SLAM2
 {
 
-class System;
-class GlobalLoopClosing;
 class Map;
-class KeyFrameDatabase;
+class KeyFrame;
+class Server;
 
 class ClientSync
 {
@@ -32,13 +36,22 @@ public:
 
     void Run();
 
+    void SetServer(Server* server);
+
     void RequestFinish();
+
+    void AddKeyFrame(KeyFrame* keyFrame);
 
 private:
 
     Map* map;
+    Server* server;
+
+    std::queue<KeyFrame*> toSync;
 
     std::atomic_bool finished;
+
+    std::mutex syncQueueMutex;
     
 };
 

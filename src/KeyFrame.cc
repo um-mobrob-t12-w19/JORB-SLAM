@@ -22,7 +22,6 @@
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include <mutex>
-#include <unordered_map>
 
 namespace ORB_SLAM2
 {
@@ -57,7 +56,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     SetPose(F.mTcw);    
 }
 
-KeyFrame::KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB, unordered_map<MapPoint*, MapPoint*> mapPointCorrespondences) :
+KeyFrame::KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB) :
     mnFrameId(F->mnFrameId),  mTimeStamp(F->mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
     mfGridElementWidthInv(F->mfGridElementWidthInv), mfGridElementHeightInv(F->mfGridElementHeightInv),
     mnTrackReferenceForFrame(0), mnFuseTargetForKF(0), mnBALocalForKF(0), mnBAFixedForKF(0),
@@ -82,12 +81,10 @@ KeyFrame::KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB, unordered_ma
             mGrid[i][j] = F->mGrid[i][j];
     }
 
-    SetPose(F->GetPose());   
+    SetPose(F->GetPose());  
 
-    // Assume all points have been inserted beforehand
-    for(MapPoint* point : F->GetMapPoints()) {
-        mvpMapPoints.push_back(mapPointCorrespondences[point]);
-    } 
+    mvpMapPoints.resize(F->mvpMapPoints.size()); 
+
 }
 
 

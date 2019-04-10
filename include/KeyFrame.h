@@ -30,6 +30,7 @@
 #include "KeyFrameDatabase.h"
 
 #include <mutex>
+#include <set>
 
 
 namespace ORB_SLAM2
@@ -44,7 +45,7 @@ class KeyFrame
 {
 public:
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
-    KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB, unordered_map<MapPoint*, MapPoint*> mapPointCorrespondences);
+    KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB);
 
     // Pose functions
     void SetPose(const cv::Mat &Tcw);
@@ -189,7 +190,6 @@ public:
     const int mnMaxY;
     const cv::Mat mK;
 
-
     // The following variables need to be accessed trough a mutex to be thread safe.
 protected:
 
@@ -202,6 +202,7 @@ protected:
 
     // MapPoints associated to keypoints
     std::vector<MapPoint*> mvpMapPoints;
+
 
     // BoW
     KeyFrameDatabase* mpKeyFrameDB;
@@ -232,6 +233,8 @@ protected:
     std::mutex mMutexPose;
     std::mutex mMutexConnections;
     std::mutex mMutexFeatures;
+
+    bool readyToSync;
 };
 
 } //namespace ORB_SLAM
