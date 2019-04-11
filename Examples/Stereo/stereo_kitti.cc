@@ -19,16 +19,16 @@
 */
 
 
-#include<iostream>
-#include<algorithm>
-#include<fstream>
-#include<iomanip>
-#include<chrono>
-#include<unistd.h>
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <chrono>
+#include <unistd.h>
 
-#include<opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
-#include<System.h>
+#include <System.h>
 #include <Server.h>
 using namespace std;
 
@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO, string("SLAM1"), true));
-	// std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
+	// std::shared_ptr<ORB_ SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
 
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
@@ -77,6 +77,10 @@ int main(int argc, char **argv)
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
     for(int ni=0; ni<nImages; ni++)
     {
+        std::cout << ni << std::endl;
+        // Image 823 fails???
+        if(ni == 823) continue;
+
         // Read left and right images from file
         imLeftA = cv::imread(vstrImageLeftSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
         imRightA = cv::imread(vstrImageRightSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
@@ -96,23 +100,13 @@ int main(int argc, char **argv)
             return 1;
         }
 
-#ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-#else
-        std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
-#endif
 
-        cout << vTimestampsA.size() << "  " << vTimestampsB.size() << " ====== " << ni << endl;
-        cout << vTimestampsA[ni] << " ====== " << vTimestampsB[ni] << endl;
         // Pass the images to the SLAM system
         SLAM1->TrackStereo(imLeftA,imRightA,vTimestampsA[ni]);
         // SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
 
-#ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-#else
-        std::chrono::monotonic_clock::time_point t2 = std::chrono::monotonic_clock::now();
-#endif
 
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
 
@@ -155,7 +149,7 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM1->SaveTrajectoryKITTI("CameraTrajectoryA.txt");
+    // SLAM1->SaveTrajectoryKITTI("CameraTrajectoryA.txt");
     // SLAM2->SaveTrajectoryKITTI("CameraTrajectoryB.txt");
 
     return 0;
