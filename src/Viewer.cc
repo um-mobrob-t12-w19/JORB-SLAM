@@ -88,7 +88,8 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-    // cv::namedWindow("ORB-SLAM2: Current Frame, SystemID: " + name);
+    cv::namedWindow("ORB-SLAM2: Current Frame, SystemID: " + name);
+    cv::startWindowThread();
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -135,8 +136,8 @@ void Viewer::Run()
 
         pangolin::FinishFrame();
 
-        // cv::Mat im = mpFrameDrawer->DrawFrame();
-        // cv::imshow("ORB-SLAM2: Current Frame, SystemID: " + name, im);
+        cv::Mat im = mpFrameDrawer->DrawFrame();
+        cv::imshow("ORB-SLAM2: Current Frame, SystemID: " + name, im);
         // cv::waitKey(mT);
 
         if(menuReset)

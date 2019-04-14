@@ -91,11 +91,9 @@ void LocalMapping::Run()
             }
 
 
-            // TODO: Sync keyframes with client sync
             syncer->AddKeyFrame(mpCurrentKeyFrame);
 
-            // Disable client loop closing
-            // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())
         {

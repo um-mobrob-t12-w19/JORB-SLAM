@@ -58,12 +58,12 @@ int main(int argc, char **argv)
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO, string("SLAM1"), true));
-	// std::shared_ptr<ORB_ SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
+	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
 
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
     server->RegisterClient(SLAM1);
-    // server->RegisterClient(SLAM2);
+    server->RegisterClient(SLAM2);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -77,7 +77,6 @@ int main(int argc, char **argv)
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
     for(int ni=0; ni<nImages; ni++)
     {
-        std::cout << ni << std::endl;
         // Image 823 fails???
         if(ni == 823) continue;
 
@@ -104,7 +103,7 @@ int main(int argc, char **argv)
 
         // Pass the images to the SLAM system
         SLAM1->TrackStereo(imLeftA,imRightA,vTimestampsA[ni]);
-        // SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
+        SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
 
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 
@@ -134,7 +133,7 @@ int main(int argc, char **argv)
 
     // Stop all threads
     SLAM1->Shutdown();
-    // SLAM2->Shutdown();
+    SLAM2->Shutdown();
     server->Shutdown();
 
     // Tracking time statistics
@@ -164,6 +163,7 @@ void LoadImages(const string &strPathToSequence,
     string strPathTimeFile = strPathToSequence + "/times.txt";
     int counter = 0;
     fTimes.open(strPathTimeFile.c_str());
+    double start_second_seq; 
     while(!fTimes.eof())
     {
         string s;
@@ -174,10 +174,11 @@ void LoadImages(const string &strPathToSequence,
             ss << s;
             double t;
             ss >> t;
-            if (counter % 2 == 0)
+            if (counter >= 2270)
                 vTimestampsA.push_back(t);
             else
-                vTimestampsB.push_back(t);
+                if(counter == 2270) start_second_seq = t;
+                vTimestampsB.push_back(t - start_second_seq);
             counter++;
         }
     }
