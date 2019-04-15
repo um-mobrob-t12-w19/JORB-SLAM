@@ -82,11 +82,8 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
-    for(int ni = 0; ni < seq_len; ni++)
+    for(size_t ni = 0; ni < seq_len; ni++)
     {
-        std::cout << ni << std::endl;
-        // Image 823 fails???
-        // if(ni == 823) continue;
 
         // Load images from set A
         if(ni < vstrImageLeftSetA.size()) 
@@ -95,8 +92,7 @@ int main(int argc, char **argv)
             imRightA = cv::imread(vstrImageRightSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
             if(imLeftA.empty())
             {
-                cerr << endl << "Failed to load image from set A at: "
-                    << string(vstrImageLeftSetA[ni]) << endl;
+                cerr << endl << "Failed to load image from set A at:  " << ni << " file: " << string(vstrImageLeftSetA[ni]) << "." << endl;
                 return 1;
             }
         }
@@ -108,8 +104,7 @@ int main(int argc, char **argv)
             imRightB = cv::imread(vstrImageRightSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
             if (imLeftB.empty())
             {
-                cerr << endl << "Failed to load image from set B at: "
-                    << string(vstrImageLeftSetB[ni]) << endl;
+                cerr << endl << "Failed to load image from set B at: " << ni << " file: " << string(vstrImageLeftSetB[ni]) << "."  << endl;
                 return 1;
             }
         }
@@ -156,7 +151,7 @@ int main(int argc, char **argv)
         if(ttrack<TA || ttrack<TB)
         {
             double T = TA > TB ? TA : TB;
-            usleep((T-ttrack)*1e6);
+            // usleep((T-ttrack)*1e6);
         }
     }
 
@@ -212,13 +207,13 @@ void LoadImages(const string &strPathToSequence,
             ss << s;
             double t;
             ss >> t;
-            if (counter >= seq_A_start && counter <= seq_A_end) 
+            if (counter >= seq_A_start && counter < seq_A_end) 
             {
                 if(counter == seq_A_start) seq_A_start_time = t;
                 vTimestampsA.push_back(t - seq_A_start_time);
                 seq_A_size++;
             }
-            if (counter >= seq_B_start && counter <= seq_B_end) 
+            if (counter >= seq_B_start && counter < seq_B_end) 
             {
                 if(counter == seq_B_start) seq_B_start_time = t;
                 vTimestampsB.push_back(t - seq_B_start_time);
@@ -246,12 +241,12 @@ void LoadImages(const string &strPathToSequence,
     {
         stringstream ss;
         ss << setfill('0') << setw(6) << i;
-        if(i >= seq_A_start && i <= seq_A_end)
+        if(i >= seq_A_start && i < seq_A_end)
         {
 			vstrImageLeftSetA[i - seq_A_start] = strPrefixLeft + ss.str() + ".png";
 			vstrImageRightSetA[i -seq_A_start] = strPrefixRight + ss.str() + ".png";
 		}
-        if(i >= seq_B_start && i <= seq_B_end)
+        if(i >= seq_B_start && i < seq_B_end)
 		{
 			vstrImageLeftSetB[i - seq_B_start] = strPrefixLeft + ss.str() + ".png";
 			vstrImageRightSetB[i - seq_B_start] = strPrefixRight + ss.str() + ".png";
