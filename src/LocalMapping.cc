@@ -90,7 +90,7 @@ void LocalMapping::Run()
                 KeyFrameCulling();
             }
 
-            syncer->AddKeyFrame(mpCurrentKeyFrame);
+            // syncer->AddKeyFrame(mpCurrentKeyFrame);
 
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }

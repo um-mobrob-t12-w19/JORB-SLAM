@@ -23,10 +23,7 @@ void ClientSync::Run()
 {
     while(!finished) {
         if(server) {
-            
-            if(!toSync.empty()) {
-                std::cout << "Syncing..." << std::endl;
-            }
+            std::unique_lock<std::mutex> lock(syncQueueMutex);
             while(!toSync.empty()) {
                 server->InsertNewKeyFrame(toSync.front());
                 toSync.pop();

@@ -155,6 +155,10 @@ int main(int argc, char **argv)
         }
     }
 
+    int x;
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin.ignore();
+
     // Stop all threads
     SLAM1->Shutdown();
     SLAM2->Shutdown();
@@ -223,19 +227,13 @@ void LoadImages(const string &strPathToSequence,
         }
     }
 
-    std::cout << "Here" << std::endl;
-
     string strPrefixLeft = strPathToSequence + "/image_0/";
     string strPrefixRight = strPathToSequence + "/image_1/";
-
-    std::cout << "Here" << std::endl;
 
     vstrImageLeftSetA.resize(seq_A_size);
     vstrImageRightSetA.resize(seq_A_size);
     vstrImageLeftSetB.resize(seq_B_size);
     vstrImageRightSetB.resize(seq_B_size);
-
-    std::cout << "Here" << std::endl;
 
     for(size_t i = 0; i < seq_len; i++)
     {
@@ -252,5 +250,4 @@ void LoadImages(const string &strPathToSequence,
 			vstrImageRightSetB[i - seq_B_start] = strPrefixRight + ss.str() + ".png";
 		}
     }
-    std::cout << "Here" << std::endl;
 }
