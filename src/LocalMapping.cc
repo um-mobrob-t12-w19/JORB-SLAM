@@ -92,7 +92,7 @@ void LocalMapping::Run()
 
             syncer->AddKeyFrame(mpCurrentKeyFrame);
 
-            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())
         {
