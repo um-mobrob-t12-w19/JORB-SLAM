@@ -49,6 +49,8 @@ public:
 
     void InsertNewKeyFrame(KeyFrame* keyframe);
 
+    void FuseMapPoints(KeyFrame* kf, std::vector<MapPoint*> fuseCandidates);
+
 private:
     YAML::Node config;
 

@@ -88,11 +88,21 @@ void LocalMapping::Run()
 
                 // Check redundant local Keyframes
                 KeyFrameCulling();
+
+                if(server) {
+                    while(!toSend.empty()) {
+                        KeyFrame* kf = toSend.front();
+                        if(kf) {
+                            if(!kf->isBad()) {
+                                server->InsertNewKeyFrame(kf);
+                            }
+                        }
+                        toSend.pop();
+                    }
+                }
             }
 
-            if(server) {
-                server->InsertNewKeyFrame(mpCurrentKeyFrame);
-            }
+            toSend.push(mpCurrentKeyFrame);
 
             // Disabled loop closing on clients
             // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
@@ -110,7 +120,7 @@ void LocalMapping::Run()
 
         ResetIfRequested();
 
-        // Tracking will see that Local Mapping is busy
+        // Tracking will see that Local Mapping is free
         SetAcceptKeyFrames(true);
 
         if(CheckFinish())

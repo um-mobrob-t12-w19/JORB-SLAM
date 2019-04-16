@@ -2,6 +2,7 @@
 #include <chrono>
 
 #include "Server.h"
+#include "ORBmatcher.h"
 
 using namespace std::literals::chrono_literals;
 
@@ -81,10 +82,9 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
     
     // Transfer map points
     size_t i = 0;
-    for(MapPoint* point : keyframe->GetMapPoints()) {
+    for(MapPoint* point : keyframe->GetMapPointMatches()) {
         if(point == nullptr) continue;
         if(point->isBad()) continue;
-        
         if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
             // Point not in server map
             MapPoint* newMapPoint = new MapPoint(point->GetWorldPos(), newKeyFrame, globalMap.get());
@@ -107,22 +107,35 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
         }
     }
 
+    for(KeyFrame* orderedKeyFrame : keyframe->GetBestCovisibilityKeyFrames(100)) {
+        std::unique_lock<std::mutex> lock2(newKeyFrame->mMutexConnections);
+        if(keyFrameDictionary.find(orderedKeyFrame) != keyFrameDictionary.end()) {
+            newKeyFrame->mvpOrderedConnectedKeyFrames.push_back(keyFrameDictionary[orderedKeyFrame]);
+        }
+    }
+
+    // KeyFrame* keyframeParent = keyframe->GetParent();
+    // if(keyframeParent) {
+    //     if(!keyframeParent->isBad()) {
+    //         if(keyFrameDictionary.find(keyframeParent) != keyFrameDictionary.end()) {
+    //             newKeyFrame->ChangeParent(keyFrameDictionary[keyframeParent]);
+    //         }
+    //     }
+    // }
+
+
     globalMap->AddKeyFrame(newKeyFrame);
     newKeyFrame->ComputeBoW();
     keyFrameDictionary[keyframe] = newKeyFrame;
-    newKeyFrame->UpdateConnections();
+    // newKeyFrame->UpdateConnections();
 
-    KeyFrame* keyframeParent = keyframe->GetParent();
-    if(keyframeParent) {
-        if(!keyframeParent->isBad()) {
-            if(keyFrameDictionary.find(keyframeParent) != keyFrameDictionary.end()) {
-                newKeyFrame->ChangeParent(keyFrameDictionary[keyframeParent]);
-            }
-        }
-    }
+
 
     globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }
 
+void Server::FuseMapPoints(KeyFrame* kf, std::vector<MapPoint*> fuseCandidates) {
+    
+}
 
 }

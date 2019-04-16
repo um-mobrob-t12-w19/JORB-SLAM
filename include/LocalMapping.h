@@ -31,6 +31,7 @@
 #include "System.h"
 
 #include <mutex>
+#include <queue>
 
 
 namespace ORB_SLAM2
@@ -130,6 +131,8 @@ protected:
 
     bool mbAcceptKeyFrames;
     std::mutex mMutexAccept;
+
+    std::queue<KeyFrame*> toSend;
 };
 
 } //namespace ORB_SLAM
