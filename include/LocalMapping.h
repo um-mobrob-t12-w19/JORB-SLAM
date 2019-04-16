@@ -28,6 +28,7 @@
 #include "KeyFrameDatabase.h"
 #include "ClientSync.h"
 #include "Server.h"
+#include "System.h"
 
 #include <mutex>
 
@@ -40,6 +41,7 @@ class LoopClosing;
 class Map;
 class ClientSync;
 class Server;
+class System;
 
 class LocalMapping
 {

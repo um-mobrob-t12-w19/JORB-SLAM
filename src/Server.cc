@@ -36,7 +36,7 @@ Server::Server(const std::string &configFile, const string &strVocFile) : stoppe
     globalDatabase = std::shared_ptr<KeyFrameDatabase>(new KeyFrameDatabase(*vocabulary));
     globalLoopClosing = std::shared_ptr<GlobalLoopClosing>(new GlobalLoopClosing(globalMap.get(), globalDatabase.get(), vocabulary.get(), !monocular));
 
-    globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&GlobalLoopClosing::Run, globalLoopClosing.get()));
+    // globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&GlobalLoopClosing::Run, globalLoopClosing.get()));
 
     mapDrawer = new MapDrawer(globalMap.get(), configFile);
     viewer = new Viewer(nullptr, this, nullptr, mapDrawer, nullptr, configFile, "Server");
@@ -81,7 +81,7 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
     
     // Transfer map points
     size_t i = 0;
-    for(MapPoint* point : keyframe->GetMapPointMatches()) {
+    for(MapPoint* point : keyframe->GetMapPoints()) {
         if(point == nullptr) continue;
         if(point->isBad()) continue;
         
@@ -100,11 +100,26 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
         }
     } 
 
+    for(KeyFrame* connectedKeyFrame : keyframe->GetConnectedKeyFrames()) {
+        if(keyFrameDictionary.find(connectedKeyFrame) != keyFrameDictionary.end()) {
+            int weight = keyframe->GetWeight(connectedKeyFrame);
+            newKeyFrame->AddConnection(keyFrameDictionary[connectedKeyFrame], weight);
+        }
+    }
+
     globalMap->AddKeyFrame(newKeyFrame);
+    newKeyFrame->ComputeBoW();
     keyFrameDictionary[keyframe] = newKeyFrame;
     newKeyFrame->UpdateConnections();
 
-
+    KeyFrame* keyframeParent = keyframe->GetParent();
+    if(keyframeParent) {
+        if(!keyframeParent->isBad()) {
+            if(keyFrameDictionary.find(keyframeParent) != keyFrameDictionary.end()) {
+                newKeyFrame->ChangeParent(keyFrameDictionary[keyframeParent]);
+            }
+        }
+    }
 
     globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }

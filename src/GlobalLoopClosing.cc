@@ -67,7 +67,6 @@ void GlobalLoopClosing::Run()
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
         {
-            std::cout << "Keyframes detected" << std::endl;
             // Detect loop candidates and check covisibility consistency
             if(DetectLoop())
             {
@@ -87,7 +86,7 @@ void GlobalLoopClosing::Run()
         if(CheckFinish())
             break;
 
-        std::this_thread::sleep_for(5s);
+        if(!CheckNewKeyFrames()) std::this_thread::sleep_for(50ms);
     }
 
     SetFinish();
@@ -121,6 +120,7 @@ bool GlobalLoopClosing::DetectLoop()
     {
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
+        std::cout << "Less than 10" << std::endl;
         return false;
     }
 

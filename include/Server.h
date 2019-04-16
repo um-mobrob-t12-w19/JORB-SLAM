@@ -69,6 +69,9 @@ private:
     std::thread* viewerThread;
     MapDrawer* mapDrawer;
 
+    KeyFrame* seqAPrevKF;
+    KeyFrame* seqBPrevKF;
+
 };
 
 }// namespace ORB_SLAM

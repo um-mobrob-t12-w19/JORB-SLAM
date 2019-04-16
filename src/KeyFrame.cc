@@ -84,6 +84,9 @@ KeyFrame::KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB) :
     SetPose(F->GetPose());  
 
     mvpMapPoints.resize(F->mvpMapPoints.size()); 
+    mConnectedKeyFrameWeights.clear();
+    mvpOrderedConnectedKeyFrames.clear();
+    mvpOrderedConnectedKeyFrames.resize(F->mvpOrderedConnectedKeyFrames.size());
 
 }
 
