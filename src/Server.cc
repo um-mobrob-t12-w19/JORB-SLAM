@@ -38,6 +38,10 @@ Server::Server(const std::string &configFile, const string &strVocFile) : stoppe
 
     globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&GlobalLoopClosing::Run, globalLoopClosing.get()));
 
+    mapDrawer = new MapDrawer(globalMap.get(), configFile);
+    viewer = new Viewer(nullptr, this, nullptr, mapDrawer, nullptr, configFile, "Server");
+    viewerThread = new std::thread(&Viewer::Run, viewer);
+
     std::cout << "Server started" << std::endl;
 }
 
@@ -77,8 +81,6 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
     
     // Transfer map points
     size_t i = 0;
-    size_t num_existing = 0;
-    size_t num_new = 0;
     for(MapPoint* point : keyframe->GetMapPointMatches()) {
         if(point == nullptr) continue;
         if(point->isBad()) continue;
@@ -92,15 +94,11 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
             newMapPoint->UpdateNormalAndDepth();
             globalMap->AddMapPoint(newMapPoint);
             mapPointDictionary[point] = newMapPoint;
-            num_new++;
         } else {
             // Point in server map
             newKeyFrame->AddMapPoint(mapPointDictionary[point], i);
-            num_existing++;
         }
     } 
-
-    std::cout << "Num existing: " << num_existing << ". Num new: " << num_new << std::endl;
 
     globalMap->AddKeyFrame(newKeyFrame);
     keyFrameDictionary[keyframe] = newKeyFrame;

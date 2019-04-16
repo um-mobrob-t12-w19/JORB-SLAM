@@ -37,6 +37,7 @@
 #include "Initializer.h"
 #include "MapDrawer.h"
 #include "System.h"
+#include "Server.h"
 
 #include <mutex>
 
@@ -49,6 +50,7 @@ class Map;
 class LocalMapping;
 class LoopClosing;
 class System;
+class Server;
 
 class Tracking
 {  
@@ -65,6 +67,7 @@ public:
     void SetLocalMapper(LocalMapping* pLocalMapper);
     void SetLoopClosing(LoopClosing* pLoopClosing);
     void SetViewer(Viewer* pViewer);
+    void SetServer(Server* server);
 
     // Load new settings
     // The focal lenght should be similar or scale prediction will fail when projecting points
@@ -172,6 +175,7 @@ protected:
     
     // System
     System* mpSystem;
+    Server* server;
     
     //Drawers
     Viewer* mpViewer;

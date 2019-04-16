@@ -28,8 +28,8 @@ namespace ORB_SLAM2
 {
 
 Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath, const string& name):
-    mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
-    mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false), name(name)
+    mpSystem(pSystem), server(server), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
+    mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false), name(name), serverViewer(pSystem == nullptr)
 {
     cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
 
@@ -88,8 +88,10 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-    cv::namedWindow("ORB-SLAM2: Current Frame, SystemID: " + name);
-    cv::startWindowThread();
+    if(!serverViewer) {
+        cv::namedWindow("ORB-SLAM2: Current Frame, SystemID: " + name);
+        cv::startWindowThread();
+    }
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -136,9 +138,11 @@ void Viewer::Run()
 
         pangolin::FinishFrame();
 
-        cv::Mat im = mpFrameDrawer->DrawFrame();
-        cv::imshow("ORB-SLAM2: Current Frame, SystemID: " + name, im);
-        // cv::waitKey(mT);
+        if(!serverViewer) {
+            cv::Mat im = mpFrameDrawer->DrawFrame();
+            cv::imshow("ORB-SLAM2: Current Frame, SystemID: " + name, im);
+            // cv::waitKey(mT);
+        }
 
         if(menuReset)
         {

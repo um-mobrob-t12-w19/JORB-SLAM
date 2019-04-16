@@ -15,6 +15,8 @@
 #include "System.h"
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
+#include "Viewer.h"
+#include "MapDrawer.h"
 
 namespace ORB_SLAM2
 {
@@ -23,6 +25,8 @@ class System;
 class GlobalLoopClosing;
 class Map;
 class KeyFrameDatabase;
+class MapDrawer;
+class Viewer;
 
 class Server
 {
@@ -60,6 +64,10 @@ private:
 
     std::unordered_map<MapPoint*, MapPoint*> mapPointDictionary;
     std::unordered_map<KeyFrame*, KeyFrame*> keyFrameDictionary;
+
+    Viewer* viewer;
+    std::thread* viewerThread;
+    MapDrawer* mapDrawer;
 
 };
 
