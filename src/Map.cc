@@ -130,4 +130,5 @@ void Map::clear()
     mvpKeyFrameOrigins.clear();
 }
 
+
 } //namespace ORB_SLAM

@@ -66,18 +66,24 @@ void Server::RegisterClient(std::shared_ptr<System> client) {
     client->RegisterServer(std::shared_ptr<Server>(this));
 }
 
-void Server::InsertNewMapPoint(MapPoint* mapPoint) {
-    // TODO: implement
+void Server::EraseMapPoint(MapPoint* mapPoint) {
+    if(mapPointDictionary.find(mapPoint) != mapPointDictionary.end()) {
+        mapPointDictionary[mapPoint]->SetBadFlag();
+    }
 }
 
 void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
     KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap.get(), globalDatabase.get());
     
+    // Transfer map points
     size_t i = 0;
-    for(MapPoint* point : keyframe->GetMapPoints()) {
-        if(!point) {
-            continue;
-        } else if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
+    size_t num_existing = 0;
+    size_t num_new = 0;
+    for(MapPoint* point : keyframe->GetMapPointMatches()) {
+        if(point == nullptr) continue;
+        if(point->isBad()) continue;
+        
+        if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
             // Point not in server map
             MapPoint* newMapPoint = new MapPoint(point->GetWorldPos(), newKeyFrame, globalMap.get());
             newMapPoint->AddObservation(newKeyFrame,i);
@@ -85,10 +91,20 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
             newMapPoint->ComputeDistinctiveDescriptors();
             newMapPoint->UpdateNormalAndDepth();
             globalMap->AddMapPoint(newMapPoint);
+            mapPointDictionary[point] = newMapPoint;
+            num_new++;
         } else {
+            // Point in server map
             newKeyFrame->AddMapPoint(mapPointDictionary[point], i);
+            num_existing++;
         }
     } 
+
+    std::cout << "Num existing: " << num_existing << ". Num new: " << num_new << std::endl;
+
+    globalMap->AddKeyFrame(newKeyFrame);
+    keyFrameDictionary[keyframe] = newKeyFrame;
+    newKeyFrame->UpdateConnections();
 
     globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }

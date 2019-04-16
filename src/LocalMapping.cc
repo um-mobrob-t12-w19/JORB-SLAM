@@ -40,8 +40,8 @@ void LocalMapping::SetLoopCloser(LoopClosing* pLoopCloser)
     mpLoopCloser = pLoopCloser;
 }
 
-void LocalMapping::SetClientSyncer(ClientSync* sync) {
-    syncer = sync;
+void LocalMapping::SetServer(Server* server) {
+    this->server = server;
 }
 
 
@@ -90,8 +90,11 @@ void LocalMapping::Run()
                 KeyFrameCulling();
             }
 
-            syncer->AddKeyFrame(mpCurrentKeyFrame);
+            if(server) {
+                server->InsertNewKeyFrame(mpCurrentKeyFrame);
+            }
 
+            // Disabled loop closing on clients
             // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())
@@ -198,11 +201,13 @@ void LocalMapping::MapPointCulling()
         else if(pMP->GetFoundRatio()<0.25f )
         {
             pMP->SetBadFlag();
+            server->EraseMapPoint(pMP);
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->Observations()<=cnThObs)
         {
             pMP->SetBadFlag();
+            server->EraseMapPoint(pMP);
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=3)

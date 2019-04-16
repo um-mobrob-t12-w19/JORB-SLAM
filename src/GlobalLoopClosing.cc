@@ -64,7 +64,9 @@ void GlobalLoopClosing::Run()
 
     while(true)
     {
-        std::cout << "Running global loop closing" << std::endl;
+        std::cout << "Map has " << mpMap->GetAllKeyFrames().size() << " KeyFrames." << std::endl;
+        std::cout << "Map has " << mpMap->GetAllMapPoints().size() << " MapPoints." << std::endl;
+
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
         {
@@ -88,7 +90,7 @@ void GlobalLoopClosing::Run()
         if(CheckFinish())
             break;
 
-        std::this_thread::sleep_for(10s);
+        std::this_thread::sleep_for(1s);
     }
 
     SetFinish();

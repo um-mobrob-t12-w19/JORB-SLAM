@@ -27,6 +27,7 @@
 #include "Tracking.h"
 #include "KeyFrameDatabase.h"
 #include "ClientSync.h"
+#include "Server.h"
 
 #include <mutex>
 
@@ -38,6 +39,7 @@ class Tracking;
 class LoopClosing;
 class Map;
 class ClientSync;
+class Server;
 
 class LocalMapping
 {
@@ -46,7 +48,7 @@ public:
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
 
-    void SetClientSyncer(ClientSync* sync);
+    void SetServer(Server* server);
 
     void SetTracker(Tracking* pTracker);
 
@@ -106,8 +108,8 @@ protected:
     Map* mpMap;
 
     LoopClosing* mpLoopCloser;
-    ClientSync* syncer;
     Tracking* mpTracker;
+    Server* server;
 
     std::list<KeyFrame*> mlNewKeyFrames;
 

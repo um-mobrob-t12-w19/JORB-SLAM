@@ -163,7 +163,6 @@ private:
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
 
-    std::shared_ptr<Server> server;
 
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.
@@ -186,6 +185,9 @@ private:
     std::vector<MapPoint*> mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
+
+    public:
+    std::shared_ptr<Server> server;
 };
 
 }// namespace ORB_SLAM

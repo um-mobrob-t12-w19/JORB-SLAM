@@ -58,6 +58,7 @@ public:
     long unsigned int GetMaxKFid();
 
     void clear();
+    
 
     vector<KeyFrame*> mvpKeyFrameOrigins;
 
@@ -78,6 +79,7 @@ protected:
     int mnBigChangeIdx;
 
     std::mutex mMutexMap;
+
 };
 
 } //namespace ORB_SLAM
