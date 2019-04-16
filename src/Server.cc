@@ -104,6 +104,8 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
     keyFrameDictionary[keyframe] = newKeyFrame;
     newKeyFrame->UpdateConnections();
 
+
+
     globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }
 
