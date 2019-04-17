@@ -45,7 +45,7 @@ public:
     // Registers an ORBSLAM System as a client which needs to be synced with the global map
     void RegisterClient(System* client);
 
-    void InsertNewKeyFrame(KeyFrame* keyframe, int offset);
+    void InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence);
     void CopyKeyFrameMappoints(KeyFrame* keyframe);
     void CopyKeyFrameConnections(KeyFrame* keyframe);
 

@@ -98,6 +98,8 @@ public:
     // Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
     cv::Mat UnprojectStereo(const int &i);
 
+    void DetectAprilTags();
+
 public:
     // Vocabulary used for relocalization.
     ORBVocabulary* mpORBvocabulary;
@@ -187,6 +189,8 @@ public:
 
     static bool mbInitialComputations;
 
+    bool detectedAprilTag;
+    cv::Mat aprilTagRelativePose;
 
 private:
 

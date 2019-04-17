@@ -192,6 +192,18 @@ public:
     const int mnMaxY;
     const cv::Mat mK;
 
+    // April Tag loop closures
+    bool detectedAprilTag;
+    cv::Mat aprilTagRelativePose;
+    // KeyFrame of other camera at that point
+    KeyFrame* aprilTagKeyFrame;
+
+    // Which sequence is the KeyFrameFrom
+    // A = 0
+    // B = 1
+    int sequence;
+
+
     // The following variables need to be accessed trough a mutex to be thread safe.
 public:
 

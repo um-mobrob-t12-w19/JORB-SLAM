@@ -987,6 +987,12 @@ bool Tracking::NeedNewKeyFrame()
     if(mpLocalMapper->isStopped() || mpLocalMapper->stopRequested())
         return false;
 
+    // Always add KeyFrames if we see an april tag. This is because if we see an april tag, the other end is likely to see us. 
+    //Therefore, we don't want large temporal gaps in our graph so we can better pair the KeyFrames.
+    if(mCurrentFrame.detectedAprilTag) {
+        return true;
+    }
+
     const int nKFs = mpMap->KeyFramesInMap();
 
     // Do not insert keyframes if not enough frames have passed from last relocalisation

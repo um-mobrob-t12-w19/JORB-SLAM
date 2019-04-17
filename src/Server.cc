@@ -55,11 +55,11 @@ void Server::Run() {
 
     bool monocular = config["monocular"].as<bool>();
 
-    // globalDatabase = new KeyFrameDatabase(*vocabulary);
-    // globalLoopClosing = new GlobalLoopClosing(globalMap, globalDatabase, vocabulary, !monocular);
+    globalDatabase = new KeyFrameDatabase(*vocabulary);
+    globalLoopClosing = new GlobalLoopClosing(globalMap, globalDatabase, vocabulary, !monocular);
 
     // // Start global mapping and viewer
-    // globalMappingThread = new std::thread(&GlobalLoopClosing::Run, globalLoopClosing);
+    globalMappingThread = new std::thread(&GlobalLoopClosing::Run, globalLoopClosing);
     viewerThread = new std::thread(&Viewer::Run, viewer);
 
     std::vector<KeyFrame*> keyframesSeqA = clients[0]->mpMap->GetAllKeyFrames();
@@ -68,9 +68,12 @@ void Server::Run() {
     std::vector<MapPoint*> mappointsSeqA = clients[0]->mpMap->GetAllMapPoints();
     std::vector<MapPoint*> mappointsSeqB = clients[1]->mpMap->GetAllMapPoints();
 
+    constexpr int SEQA = 0;
+    constexpr int SEQB = 1;
+
     // while(!stopped) {
     for(KeyFrame* keyframe : keyframesSeqA) {
-        InsertNewKeyFrame(keyframe, 0);
+        InsertNewKeyFrame(keyframe, 0, SEQA);
     }
 
     for(KeyFrame* keyframe : keyframesSeqA) {
@@ -83,7 +86,7 @@ void Server::Run() {
 
     int offset = globalMap->GetAllKeyFrames().size();
     for(KeyFrame* keyframe : keyframesSeqB) {
-        InsertNewKeyFrame(keyframe, offset);
+        InsertNewKeyFrame(keyframe, offset, SEQB);
     }
 
     for(KeyFrame* keyframe : keyframesSeqB) {
@@ -94,7 +97,9 @@ void Server::Run() {
         CopyKeyFrameConnections(keyframe);
     }
 
-    // globalLoopClosing->InsertKeyFrame(newKeyFrame);
+    for(KeyFrame* keyframe : globalMap->GetAllKeyFrames()) {
+        globalLoopClosing->InsertKeyFrame(keyframe);
+    }
 
     // for(KeyFrame* keyframe : keyframesSeqB) {
     //     InsertNewKeyFrame(keyframe, offset);
@@ -103,9 +108,10 @@ void Server::Run() {
 
 }
 
-void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset) {
+void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence) {
     KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap, globalDatabase);
     newKeyFrame->mnId += offset;
+    newKeyFrame->sequence = sequence;
 
     globalMap->AddKeyFrame(newKeyFrame);
     keyFrameDictionary[keyframe] = newKeyFrame;

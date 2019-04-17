@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
-    for(size_t ni = 2200; ni < seq_len; ni++)
+    for(size_t ni = 0; ni < seq_len; ni++)
     {
 
         // Load images from set A

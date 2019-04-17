@@ -679,4 +679,8 @@ cv::Mat Frame::UnprojectStereo(const int &i)
         return cv::Mat();
 }
 
+void Frame::DetectAprilTags() {
+    // TODO: implement
+}
+
 } //namespace ORB_SLAM
