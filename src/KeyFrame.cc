@@ -86,7 +86,7 @@ KeyFrame::KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB) :
     mvpMapPoints.resize(F->mvpMapPoints.size()); 
     mConnectedKeyFrameWeights.clear();
     mvpOrderedConnectedKeyFrames.clear();
-    mvpOrderedConnectedKeyFrames.resize(F->mvpOrderedConnectedKeyFrames.size());
+    mvOrderedWeights.clear();
     mspChildrens.clear();
     mspLoopEdges.clear();
 }

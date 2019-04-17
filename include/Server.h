@@ -43,26 +43,24 @@ public:
     void Run();
 
     // Registers an ORBSLAM System as a client which needs to be synced with the global map
-    void RegisterClient(std::shared_ptr<System> client);
+    void RegisterClient(System* client);
 
-    void EraseMapPoint(MapPoint* mapPoint);
+    void InsertNewKeyFrame(KeyFrame* keyframe, int offset);
+    void CopyKeyFrameMappoints(KeyFrame* keyframe);
+    void CopyKeyFrameConnections(KeyFrame* keyframe);
 
-    void InsertNewKeyFrame(KeyFrame* keyframe);
-
-    void FuseMapPoints(KeyFrame* kf, std::vector<MapPoint*> fuseCandidates);
-
-private:
+public:
     YAML::Node config;
 
-    std::vector<std::shared_ptr<System>> clients;
-    std::shared_ptr<std::thread> globalMappingThread;
+    std::vector<System*> clients;
+    std::thread* globalMappingThread;
     std::atomic_bool stopped;
 
-    std::shared_ptr<ORBVocabulary> vocabulary;
+    ORBVocabulary* vocabulary;
 
-    std::shared_ptr<Map> globalMap;
-    std::shared_ptr<KeyFrameDatabase> globalDatabase;
-    std::shared_ptr<GlobalLoopClosing> globalLoopClosing;
+    Map* globalMap;
+    KeyFrameDatabase* globalDatabase;
+    GlobalLoopClosing* globalLoopClosing;
 
     std::unordered_map<MapPoint*, MapPoint*> mapPointDictionary;
     std::unordered_map<KeyFrame*, KeyFrame*> keyFrameDictionary;

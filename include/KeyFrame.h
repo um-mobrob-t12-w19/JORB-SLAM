@@ -45,6 +45,8 @@ class KeyFrame
 {
 public:
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
+    
+    // Used for copying keyframes to server
     KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB);
 
     // Pose functions

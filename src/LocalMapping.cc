@@ -89,23 +89,11 @@ void LocalMapping::Run()
                 // Check redundant local Keyframes
                 KeyFrameCulling();
 
-                if(server) {
-                    while(!toSend.empty()) {
-                        KeyFrame* kf = toSend.front();
-                        if(kf) {
-                            if(!kf->isBad()) {
-                                server->InsertNewKeyFrame(kf);
-                            }
-                        }
-                        toSend.pop();
-                    }
-                }
             }
 
-            toSend.push(mpCurrentKeyFrame);
+            // toSend.push(mpCurrentKeyFrame);
 
-            // Disabled loop closing on clients
-            // mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())
         {
@@ -211,13 +199,11 @@ void LocalMapping::MapPointCulling()
         else if(pMP->GetFoundRatio()<0.25f )
         {
             pMP->SetBadFlag();
-            server->EraseMapPoint(pMP);
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=2 && pMP->Observations()<=cnThObs)
         {
             pMP->SetBadFlag();
-            server->EraseMapPoint(pMP);
             lit = mlpRecentAddedMapPoints.erase(lit);
         }
         else if(((int)nCurrentKFid-(int)pMP->mnFirstKFid)>=3)

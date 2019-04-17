@@ -79,7 +79,6 @@ src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
 src/Server.cc
-src/ClientSync.cc
 )
 
 target_link_libraries(${PROJECT_NAME}

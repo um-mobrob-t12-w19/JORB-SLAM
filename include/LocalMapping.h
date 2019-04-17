@@ -26,7 +26,6 @@
 #include "LoopClosing.h"
 #include "Tracking.h"
 #include "KeyFrameDatabase.h"
-#include "ClientSync.h"
 #include "Server.h"
 #include "System.h"
 
@@ -40,7 +39,6 @@ namespace ORB_SLAM2
 class Tracking;
 class LoopClosing;
 class Map;
-class ClientSync;
 class Server;
 class System;
 

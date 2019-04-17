@@ -34,7 +34,7 @@ using namespace std;
 
 constexpr size_t seq_len = 4540;
 constexpr size_t seq_A_start = 0;
-constexpr size_t seq_A_end = 2400;
+constexpr size_t seq_A_end = 2270;
 constexpr size_t seq_B_start = 2270;
 constexpr size_t seq_B_end = 4540;
 
@@ -69,8 +69,8 @@ int main(int argc, char **argv)
 
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
-    server->RegisterClient(SLAM1);
-    server->RegisterClient(SLAM2);
+    server->RegisterClient(SLAM1.get());
+    server->RegisterClient(SLAM2.get());
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
-    for(size_t ni = 2000; ni < seq_len; ni++)
+    for(size_t ni = 2200; ni < seq_len; ni++)
     {
 
         // Load images from set A
@@ -155,14 +155,22 @@ int main(int argc, char **argv)
         }
     }
 
-    int x;
+    SLAM1->ActivateLocalizationMode();
+    SLAM2->ActivateLocalizationMode();
+
+    std::cout << "Syncing maps..." << std::endl;
+
+    server->Run();    
+
+    std::cout << "Finished syncing maps." << std::endl;
+
     std::cout << "Press enter to continue" << std::endl;
     std::cin.ignore();
 
     // Stop all threads
+    server->Shutdown();
     SLAM1->Shutdown();
     SLAM2->Shutdown();
-    server->Shutdown();
 
     // Tracking time statistics
     sort(vTimesTrack.begin(),vTimesTrack.end());
