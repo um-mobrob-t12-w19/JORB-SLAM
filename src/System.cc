@@ -97,12 +97,15 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     //Initialize the Loop Closing thread and launch
     mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpVocabulary, mSensor!=MONOCULAR);
-    mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
+    // mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
+
+    // syncer = new ClientSync(mpMap);
+    // syncerThread = new thread(&ClientSync::Run, syncer);
 
     //Initialize the Viewer thread and launch
     if(bUseViewer)
     {
-        mpViewer = new Viewer(this, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile, name);
+        mpViewer = new Viewer(this, nullptr, mpFrameDrawer,mpMapDrawer,mpTracker,strSettingsFile, name);
         mptViewer = new thread(&Viewer::Run, mpViewer);
         mpTracker->SetViewer(mpViewer);
     }
@@ -307,6 +310,7 @@ void System::Shutdown()
 {
     mpLocalMapper->RequestFinish();
     mpLoopCloser->RequestFinish();
+    syncer->RequestFinish();
     if(mpViewer)
     {
         mpViewer->RequestFinish();
@@ -496,6 +500,7 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
 
 void System::RegisterServer(std::shared_ptr<Server> server) {
     this->server = server;
+    mpLocalMapper->SetServer(server.get());
 }
 
 

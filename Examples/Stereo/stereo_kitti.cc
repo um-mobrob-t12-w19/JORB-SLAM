@@ -19,18 +19,25 @@
 */
 
 
-#include<iostream>
-#include<algorithm>
-#include<fstream>
-#include<iomanip>
-#include<chrono>
-#include<unistd.h>
+#include <iostream>
+#include <algorithm>
+#include <fstream>
+#include <iomanip>
+#include <chrono>
+#include <unistd.h>
 
-#include<opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
-#include<System.h>
+#include <System.h>
 #include <Server.h>
 using namespace std;
+
+constexpr size_t seq_len = 4540;
+constexpr size_t seq_A_start = 0;
+constexpr size_t seq_A_end = 2400;
+constexpr size_t seq_B_start = 2270;
+constexpr size_t seq_B_end = 4540;
+
 
 void LoadImages(const string &strPathToSequence, 
                 vector<string> &vstrImageLeftSetA, vector<string> &vstrImageRightSetA,
@@ -57,8 +64,8 @@ int main(int argc, char **argv)
     const int nImages = vstrImageLeftSetA.size();
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO, string("SLAM1"), true));
-	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), true));
+    std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::STEREO, string("SLAM1"), false));
+	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[2], ORB_SLAM2::System::STEREO, string("SLAM2"), false));
 
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[4], argv[1]));
 
@@ -75,44 +82,54 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
-    for(int ni=0; ni<nImages; ni++)
+    for(size_t ni = 2000; ni < seq_len; ni++)
     {
-        // Read left and right images from file
-        imLeftA = cv::imread(vstrImageLeftSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imRightA = cv::imread(vstrImageRightSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imLeftB = cv::imread(vstrImageLeftSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
-        imRightB = cv::imread(vstrImageRightSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
 
-        if(imLeftA.empty())
+        // Load images from set A
+        if(ni < vstrImageLeftSetA.size()) 
         {
-            cerr << endl << "Failed to load image at: "
-                 << string(vstrImageLeftSetA[ni]) << endl;
-            return 1;
-        }
-        if (imLeftB.empty())
-        {
-            cerr << endl << "Failed to load image at: "
-                << string(vstrImageLeftSetB[ni]) << endl;
-            return 1;
+            imLeftA = cv::imread(vstrImageLeftSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
+            imRightA = cv::imread(vstrImageRightSetA[ni],CV_LOAD_IMAGE_UNCHANGED);
+            if(imLeftA.empty())
+            {
+                cerr << endl << "Failed to load image from set A at:  " << ni << " file: " << string(vstrImageLeftSetA[ni]) << "." << endl;
+                return 1;
+            }
         }
 
-#ifdef COMPILEDWITHC11
+        // Load images for set b
+        if(ni < vstrImageLeftSetB.size()) 
+        {
+            imLeftB = cv::imread(vstrImageLeftSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
+            imRightB = cv::imread(vstrImageRightSetB[ni], CV_LOAD_IMAGE_UNCHANGED);
+            if (imLeftB.empty())
+            {
+                cerr << endl << "Failed to load image from set B at: " << ni << " file: " << string(vstrImageLeftSetB[ni]) << "."  << endl;
+                return 1;
+            }
+        }
+
+
+
+        if(ni >= vstrImageLeftSetB.size() && ni > vstrImageLeftSetA.size()) {
+            std::cout << "Finished both sequences, exiting." << std::endl;
+            break;
+        };
+
+
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-#else
-        std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
-#endif
 
-        cout << vTimestampsA.size() << "  " << vTimestampsB.size() << " ====== " << ni << endl;
-        cout << vTimestampsA[ni] << " ====== " << vTimestampsB[ni] << endl;
         // Pass the images to the SLAM system
-        SLAM1->TrackStereo(imLeftA,imRightA,vTimestampsA[ni]);
-        SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
+        if(ni < vstrImageLeftSetA.size()) 
+        {
+            SLAM1->TrackStereo(imLeftA,imRightA,vTimestampsA[ni]);
+        }
+        if(ni < vstrImageLeftSetB.size()) 
+        {
+            SLAM2->TrackStereo(imLeftB,imRightB,vTimestampsB[ni]);
+        }
 
-#ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-#else
-        std::chrono::monotonic_clock::time_point t2 = std::chrono::monotonic_clock::now();
-#endif
 
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
 
@@ -134,9 +151,13 @@ int main(int argc, char **argv)
         if(ttrack<TA || ttrack<TB)
         {
             double T = TA > TB ? TA : TB;
-            usleep((T-ttrack)*1e6);
+            // usleep((T-ttrack)*1e6);
         }
     }
+
+    int x;
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin.ignore();
 
     // Stop all threads
     SLAM1->Shutdown();
@@ -155,8 +176,8 @@ int main(int argc, char **argv)
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
     // Save camera trajectory
-    SLAM1->SaveTrajectoryKITTI("CameraTrajectoryA.txt");
-    SLAM2->SaveTrajectoryKITTI("CameraTrajectoryB.txt");
+    // SLAM1->SaveTrajectoryKITTI("CameraTrajectoryA.txt");
+    // SLAM2->SaveTrajectoryKITTI("CameraTrajectoryB.txt");
 
     return 0;
 }
@@ -166,10 +187,20 @@ void LoadImages(const string &strPathToSequence,
                 vector<string> &vstrImageLeftSetB, vector<string> &vstrImageRightSetB,
                 vector<double> &vTimestampsA, vector<double> &vTimestampsB)
 {
+
     ifstream fTimes;
     string strPathTimeFile = strPathToSequence + "/times.txt";
     int counter = 0;
     fTimes.open(strPathTimeFile.c_str());
+
+    double seq_A_start_time;
+    double seq_B_start_time;
+
+    size_t seq_A_size = 0;
+    size_t seq_B_size = 0;
+
+    std::cout << "Here" << std::endl;
+
     while(!fTimes.eof())
     {
         string s;
@@ -180,10 +211,18 @@ void LoadImages(const string &strPathToSequence,
             ss << s;
             double t;
             ss >> t;
-            if (counter % 2 == 0)
-                vTimestampsA.push_back(t);
-            else
-                vTimestampsB.push_back(t);
+            if (counter >= seq_A_start && counter < seq_A_end) 
+            {
+                if(counter == seq_A_start) seq_A_start_time = t;
+                vTimestampsA.push_back(t - seq_A_start_time);
+                seq_A_size++;
+            }
+            if (counter >= seq_B_start && counter < seq_B_end) 
+            {
+                if(counter == seq_B_start) seq_B_start_time = t;
+                vTimestampsB.push_back(t - seq_B_start_time);
+                seq_B_size++;
+            }
             counter++;
         }
     }
@@ -191,29 +230,24 @@ void LoadImages(const string &strPathToSequence,
     string strPrefixLeft = strPathToSequence + "/image_0/";
     string strPrefixRight = strPathToSequence + "/image_1/";
 
-    const int nTimes = vTimestampsA.size() + vTimestampsB.size();
-    if (nTimes % 2 != 0) {
-        cout << "Expecting off by one error in for loop below (stereo_kitti::LoadImages)";
-        cout << "May also need to adjust main above (stereo_kitti::main)";
-    }
-    const int setSize = nTimes / 2;
-    vstrImageLeftSetA.resize(setSize);
-    vstrImageRightSetA.resize(setSize);
-    vstrImageLeftSetB.resize(setSize);
-    vstrImageRightSetB.resize(setSize);
+    vstrImageLeftSetA.resize(seq_A_size);
+    vstrImageRightSetA.resize(seq_A_size);
+    vstrImageLeftSetB.resize(seq_B_size);
+    vstrImageRightSetB.resize(seq_B_size);
 
-    for(int i=0; i<nTimes; i++)
+    for(size_t i = 0; i < seq_len; i++)
     {
         stringstream ss;
         ss << setfill('0') << setw(6) << i;
-		if (i < setSize) {
-			vstrImageLeftSetA[i] = strPrefixLeft + ss.str() + ".png";
-			vstrImageRightSetA[i] = strPrefixRight + ss.str() + ".png";
+        if(i >= seq_A_start && i < seq_A_end)
+        {
+			vstrImageLeftSetA[i - seq_A_start] = strPrefixLeft + ss.str() + ".png";
+			vstrImageRightSetA[i -seq_A_start] = strPrefixRight + ss.str() + ".png";
 		}
-		else 
+        if(i >= seq_B_start && i < seq_B_end)
 		{
-			vstrImageLeftSetB[i-setSize] = strPrefixLeft + ss.str() + ".png";
-			vstrImageRightSetB[i-setSize] = strPrefixRight + ss.str() + ".png";
+			vstrImageLeftSetB[i - seq_B_start] = strPrefixLeft + ss.str() + ".png";
+			vstrImageRightSetB[i - seq_B_start] = strPrefixRight + ss.str() + ".png";
 		}
     }
 }

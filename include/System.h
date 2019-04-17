@@ -37,6 +37,7 @@
 #include "ORBVocabulary.h"
 #include "Viewer.h"
 #include "Server.h"
+#include "ClientSync.h"
 
 namespace ORB_SLAM2
 {
@@ -48,6 +49,7 @@ class Tracking;
 class LocalMapping;
 class LoopClosing;
 class Server;
+class ClientSync;
 
 class System
 {
@@ -156,16 +158,18 @@ private:
     // The viewer draws the map and the current camera pose. It uses Pangolin.
     Viewer* mpViewer;
 
+    ClientSync* syncer;
+
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
 
-    std::shared_ptr<Server> server;
 
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.
     std::thread* mptLocalMapping;
     std::thread* mptLoopClosing;
     std::thread* mptViewer;
+    std::thread* syncerThread;
 
     // Reset flag
     std::mutex mMutexReset;
@@ -181,6 +185,9 @@ private:
     std::vector<MapPoint*> mTrackedMapPoints;
     std::vector<cv::KeyPoint> mTrackedKeyPointsUn;
     std::mutex mMutexState;
+
+    public:
+    std::shared_ptr<Server> server;
 };
 
 }// namespace ORB_SLAM

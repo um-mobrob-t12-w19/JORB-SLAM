@@ -36,7 +36,11 @@ Server::Server(const std::string &configFile, const string &strVocFile) : stoppe
     globalDatabase = std::shared_ptr<KeyFrameDatabase>(new KeyFrameDatabase(*vocabulary));
     globalLoopClosing = std::shared_ptr<GlobalLoopClosing>(new GlobalLoopClosing(globalMap.get(), globalDatabase.get(), vocabulary.get(), !monocular));
 
-    globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&GlobalLoopClosing::Run, globalLoopClosing.get()));
+    // globalMappingThread = std::shared_ptr<std::thread>(new std::thread(&GlobalLoopClosing::Run, globalLoopClosing.get()));
+
+    mapDrawer = new MapDrawer(globalMap.get(), configFile);
+    viewer = new Viewer(nullptr, this, nullptr, mapDrawer, nullptr, configFile, "Server");
+    viewerThread = new std::thread(&Viewer::Run, viewer);
 
     std::cout << "Server started" << std::endl;
 }
@@ -66,12 +70,57 @@ void Server::RegisterClient(std::shared_ptr<System> client) {
     client->RegisterServer(std::shared_ptr<Server>(this));
 }
 
-void Server::InsertNewMapPoint(MapPoint* mapPoint) {
-    // TODO: implement
+void Server::EraseMapPoint(MapPoint* mapPoint) {
+    if(mapPointDictionary.find(mapPoint) != mapPointDictionary.end()) {
+        mapPointDictionary[mapPoint]->SetBadFlag();
+    }
 }
 
 void Server::InsertNewKeyFrame(KeyFrame* keyframe) {
-    KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap.get(), globalDatabase.get(), mapPointDictionary);
+    KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap.get(), globalDatabase.get());
+    
+    // Transfer map points
+    size_t i = 0;
+    for(MapPoint* point : keyframe->GetMapPoints()) {
+        if(point == nullptr) continue;
+        if(point->isBad()) continue;
+        
+        if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
+            // Point not in server map
+            MapPoint* newMapPoint = new MapPoint(point->GetWorldPos(), newKeyFrame, globalMap.get());
+            newMapPoint->AddObservation(newKeyFrame,i);
+            newKeyFrame->AddMapPoint(point,i);
+            newMapPoint->ComputeDistinctiveDescriptors();
+            newMapPoint->UpdateNormalAndDepth();
+            globalMap->AddMapPoint(newMapPoint);
+            mapPointDictionary[point] = newMapPoint;
+        } else {
+            // Point in server map
+            newKeyFrame->AddMapPoint(mapPointDictionary[point], i);
+        }
+    } 
+
+    for(KeyFrame* connectedKeyFrame : keyframe->GetConnectedKeyFrames()) {
+        if(keyFrameDictionary.find(connectedKeyFrame) != keyFrameDictionary.end()) {
+            int weight = keyframe->GetWeight(connectedKeyFrame);
+            newKeyFrame->AddConnection(keyFrameDictionary[connectedKeyFrame], weight);
+        }
+    }
+
+    globalMap->AddKeyFrame(newKeyFrame);
+    newKeyFrame->ComputeBoW();
+    keyFrameDictionary[keyframe] = newKeyFrame;
+    newKeyFrame->UpdateConnections();
+
+    KeyFrame* keyframeParent = keyframe->GetParent();
+    if(keyframeParent) {
+        if(!keyframeParent->isBad()) {
+            if(keyFrameDictionary.find(keyframeParent) != keyFrameDictionary.end()) {
+                newKeyFrame->ChangeParent(keyFrameDictionary[keyframeParent]);
+            }
+        }
+    }
+
     globalLoopClosing->InsertKeyFrame(newKeyFrame);
 }
 

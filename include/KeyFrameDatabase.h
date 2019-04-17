@@ -51,6 +51,8 @@ public:
 
    void clear();
 
+   int size();
+
    // Loop Detection
    std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
 

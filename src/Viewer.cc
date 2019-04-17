@@ -27,9 +27,9 @@
 namespace ORB_SLAM2
 {
 
-Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath, const string& name):
-    mpSystem(pSystem), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
-    mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false), name(name)
+Viewer::Viewer(System* pSystem, Server* server, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer, Tracking *pTracking, const string &strSettingPath, const string& name):
+    mpSystem(pSystem), server(server), mpFrameDrawer(pFrameDrawer),mpMapDrawer(pMapDrawer), mpTracker(pTracking),
+    mbFinishRequested(false), mbFinished(true), mbStopped(true), mbStopRequested(false), name(name), serverViewer(pSystem == nullptr)
 {
     cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
 
@@ -73,6 +73,8 @@ void Viewer::Run()
     pangolin::Var<bool> menuShowGraph("menu.Show Graph",true,true);
     pangolin::Var<bool> menuLocalizationMode("menu.Localization Mode",false,true);
     pangolin::Var<bool> menuReset("menu.Reset",false,false);
+    pangolin::Var<int> numMapPoints("menu.Server MPs", 0);
+    pangolin::Var<int> numKeyFrames("menu.Server KFs", 0);
 
     // Define Camera Render Object (for view / scene browsing)
     pangolin::OpenGlRenderState s_cam(
@@ -88,7 +90,10 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-    // cv::namedWindow("ORB-SLAM2: Current Frame, SystemID: " + name);
+    if(!serverViewer) {
+        cv::namedWindow("ORB-SLAM2: Current Frame, SystemID: " + name);
+        cv::startWindowThread();
+    }
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -133,11 +138,16 @@ void Viewer::Run()
         if(menuShowPoints)
             mpMapDrawer->DrawMapPoints();
 
+        numMapPoints = mpMapDrawer->mpMap->MapPointsInMap();
+        numKeyFrames = mpMapDrawer->mpMap->KeyFramesInMap();
+
         pangolin::FinishFrame();
 
-        // cv::Mat im = mpFrameDrawer->DrawFrame();
-        // cv::imshow("ORB-SLAM2: Current Frame, SystemID: " + name, im);
-        // cv::waitKey(mT);
+        if(!serverViewer) {
+            cv::Mat im = mpFrameDrawer->DrawFrame();
+            cv::imshow("ORB-SLAM2: Current Frame, SystemID: " + name, im);
+            // cv::waitKey(mT);
+        }
 
         if(menuReset)
         {

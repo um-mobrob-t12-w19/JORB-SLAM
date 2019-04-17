@@ -70,6 +70,7 @@ void GlobalLoopClosing::Run()
             // Detect loop candidates and check covisibility consistency
             if(DetectLoop())
             {
+                std::cout << "Global loop detected" << std::endl;
                // Compute similarity transformation [sR|t]
                // In the stereo/RGBD case s=1
                if(ComputeSim3())
@@ -85,7 +86,7 @@ void GlobalLoopClosing::Run()
         if(CheckFinish())
             break;
 
-        std::this_thread::sleep_for(10s);
+        if(!CheckNewKeyFrames()) std::this_thread::sleep_for(50ms);
     }
 
     SetFinish();
@@ -119,6 +120,7 @@ bool GlobalLoopClosing::DetectLoop()
     {
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
+        std::cout << "Less than 10" << std::endl;
         return false;
     }
 

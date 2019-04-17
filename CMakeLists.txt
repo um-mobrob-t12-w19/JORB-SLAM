@@ -44,12 +44,15 @@ find_package(Boost  1.54.0  	     # Minimum or EXACT version e.g. 1.36.0
   COMPONENTS serialization 				# Boost libraries by their canonical name
   )          
 
-include_directories(
+include_directories(SYSTEM
 ${PROJECT_SOURCE_DIR}
-${PROJECT_SOURCE_DIR}/include
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
 ${YAMLCPP_INCLUDE_DIR}
+)
+
+include_directories(
+${PROJECT_SOURCE_DIR}/include
 )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -76,6 +79,7 @@ src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
 src/Server.cc
+src/ClientSync.cc
 )
 
 target_link_libraries(${PROJECT_NAME}

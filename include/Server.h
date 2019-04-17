@@ -15,6 +15,8 @@
 #include "System.h"
 #include "KeyFrameDatabase.h"
 #include "ORBVocabulary.h"
+#include "Viewer.h"
+#include "MapDrawer.h"
 
 namespace ORB_SLAM2
 {
@@ -23,6 +25,8 @@ class System;
 class GlobalLoopClosing;
 class Map;
 class KeyFrameDatabase;
+class MapDrawer;
+class Viewer;
 
 class Server
 {
@@ -41,8 +45,8 @@ public:
     // Registers an ORBSLAM System as a client which needs to be synced with the global map
     void RegisterClient(std::shared_ptr<System> client);
 
-    void InsertNewMapPoint(MapPoint* mapPoint);
-    
+    void EraseMapPoint(MapPoint* mapPoint);
+
     void InsertNewKeyFrame(KeyFrame* keyframe);
 
 private:
@@ -60,6 +64,13 @@ private:
 
     std::unordered_map<MapPoint*, MapPoint*> mapPointDictionary;
     std::unordered_map<KeyFrame*, KeyFrame*> keyFrameDictionary;
+
+    Viewer* viewer;
+    std::thread* viewerThread;
+    MapDrawer* mapDrawer;
+
+    KeyFrame* seqAPrevKF;
+    KeyFrame* seqBPrevKF;
 
 };
 
