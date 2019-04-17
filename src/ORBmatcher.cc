@@ -1110,34 +1110,28 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
     const float &fy = pKF1->fy;
     const float &cx = pKF1->cx;
     const float &cy = pKF1->cy;
-    std::cout << "Search 1" << std::endl;
     // Camera 1 from world
     cv::Mat R1w = pKF1->GetRotation();
     cv::Mat t1w = pKF1->GetTranslation();
 
-    std::cout << "Search 2" << std::endl;
     //Camera 2 from world
     cv::Mat R2w = pKF2->GetRotation();
     cv::Mat t2w = pKF2->GetTranslation();
 
-    std::cout << "Search 3" << std::endl;
     //Transformation between cameras
     cv::Mat sR12 = s12*R12;
     cv::Mat sR21 = (1.0/s12)*R12.t();
     cv::Mat t21 = -sR21*t12;
 
-    std::cout << "Search 4" << std::endl;
     const vector<MapPoint*> vpMapPoints1 = pKF1->GetMapPointMatches();
     const int N1 = vpMapPoints1.size();
 
     const vector<MapPoint*> vpMapPoints2 = pKF2->GetMapPointMatches();
     const int N2 = vpMapPoints2.size();
 
-    std::cout << "Search 5" << std::endl;
     vector<bool> vbAlreadyMatched1(N1,false);
     vector<bool> vbAlreadyMatched2(N2,false);
 
-    std::cout << "Search 6" << std::endl;
     for(int i=0; i<N1; i++)
     {
         MapPoint* pMP = vpMatches12[i];
@@ -1150,30 +1144,24 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
         }
     }
 
-    std::cout << "Search 7" << std::endl;
     vector<int> vnMatch1(N1,-1);
     vector<int> vnMatch2(N2,-1);
 
-    std::cout << "Search 8" << std::endl;
     // Transform from KF1 to KF2 and search
     for(int i1=0; i1<N1; i1++)
     {
-        std::cout << "Search Loop 1" << std::endl;
         MapPoint* pMP = vpMapPoints1[i1];
 
-        std::cout << "Search Loop 2" << std::endl;
         if(!pMP || vbAlreadyMatched1[i1])
             continue;
 
         if(pMP->isBad())
             continue;
 
-        std::cout << "Search Loop 3" << std::endl;
         cv::Mat p3Dw = pMP->GetWorldPos();
         cv::Mat p3Dc1 = R1w*p3Dw + t1w;
         cv::Mat p3Dc2 = sR21*p3Dc1 + t21;
 
-        std::cout << "Search Loop 4" << std::endl;
         // Depth must be positive
         if(p3Dc2.at<float>(2)<0.0)
             continue;
@@ -1185,7 +1173,6 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
         const float u = fx*x+cx;
         const float v = fy*y+cy;
 
-        std::cout << "Search Loop 5" << std::endl;
         // Point must be inside the image
         if(!pKF2->IsInImage(u,v))
             continue;
@@ -1194,66 +1181,52 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
         const float minDistance = pMP->GetMinDistanceInvariance();
         const float dist3D = cv::norm(p3Dc2);
 
-        std::cout << "Search Loop 6" << std::endl;
         // Depth must be inside the scale invariance region
         if(dist3D<minDistance || dist3D>maxDistance )
             continue;
 
-        std::cout << "Search Loop 7" << std::endl;
         // Compute predicted octave
         const int nPredictedLevel = pMP->PredictScale(dist3D,pKF2);
 
-        std::cout << "Search Loop 8" << std::endl;
         // Search in a radius
         const float radius = th*pKF2->mvScaleFactors[nPredictedLevel];
 
-        std::cout << "Search Loop 9" << std::endl;
         const vector<size_t> vIndices = pKF2->GetFeaturesInArea(u,v,radius);
 
         if(vIndices.empty())
             continue;
 
-        std::cout << "Search Loop 10" << std::endl;
         // Match to the most similar keypoint in the radius
         const cv::Mat dMP = pMP->GetDescriptor();
 
-        std::cout << "Search Loop 11" << std::endl;
         int bestDist = INT_MAX;
         int bestIdx = -1;
         for(vector<size_t>::const_iterator vit=vIndices.begin(), vend=vIndices.end(); vit!=vend; vit++)
         {
-            std::cout << "Search Loop Loop 1" << std::endl;
             const size_t idx = *vit;
 
             const cv::KeyPoint &kp = pKF2->mvKeysUn[idx];
 
-            std::cout << "Search Loop Loop 2" << std::endl;
             if(kp.octave<nPredictedLevel-1 || kp.octave>nPredictedLevel)
                 continue;
 
-            std::cout << "Search Loop Loop 3" << std::endl;
             const cv::Mat &dKF = pKF2->mDescriptors.row(idx);
 
-            std::cout << "Search Loop Loop 4" << std::endl;
             const int dist = DescriptorDistance(dMP,dKF);
 
-            std::cout << "Search Loop Loop 5" << std::endl;
             if(dist<bestDist)
             {
                 bestDist = dist;
                 bestIdx = idx;
             }
-            std::cout << "Search Loop Loop 6" << std::endl;
         }
 
-        std::cout << "Search Loop 12" << std::endl;
         if(bestDist<=TH_HIGH)
         {
             vnMatch1[i1]=bestIdx;
         }
     }
 
-    std::cout << "Search 9" << std::endl;
     // Transform from KF2 to KF2 and search
     for(int i2=0; i2<N2; i2++)
     {
@@ -1334,7 +1307,6 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
         }
     }
 
-    std::cout << "Search 10" << std::endl;
     // Check agreement
     int nFound = 0;
 
@@ -1353,7 +1325,6 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
         }
     }
 
-    std::cout << "Search 11" << std::endl;
     return nFound;
 }
 

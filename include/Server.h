@@ -7,6 +7,7 @@
 #include <atomic>
 #include <string>
 #include <unordered_map>
+#include <map>
 
 #include <yaml-cpp/yaml.h>
 
@@ -48,6 +49,7 @@ public:
     void InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence);
     void CopyKeyFrameMappoints(KeyFrame* keyframe);
     void CopyKeyFrameConnections(KeyFrame* keyframe);
+    void FindAprilTagConnections();
 
 public:
     YAML::Node config;
@@ -64,6 +66,9 @@ public:
 
     std::unordered_map<MapPoint*, MapPoint*> mapPointDictionary;
     std::unordered_map<KeyFrame*, KeyFrame*> keyFrameDictionary;
+
+    std::map<double, KeyFrame*> timeDictionaryA;
+    std::map<double, KeyFrame*> timeDictionaryB;
 
     Viewer* viewer;
     std::thread* viewerThread;

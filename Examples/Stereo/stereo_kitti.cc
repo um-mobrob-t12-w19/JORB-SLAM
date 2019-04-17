@@ -158,7 +158,9 @@ int main(int argc, char **argv)
     }
 
     // Wait for the clients to finish processing
-    std::this_thread::sleep_for(5s);
+    std::cout << "Finished running clients. Press enter to run server" << std::endl;
+    std::cin.ignore();
+
 
     // Disable local mapping and loop closing threads. Keeps viewer alive
     SLAM1->ActivateLocalizationMode();

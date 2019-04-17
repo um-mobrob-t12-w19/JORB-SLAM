@@ -8,6 +8,10 @@ using namespace std::literals::chrono_literals;
 
 namespace ORB_SLAM2 {
 
+constexpr int SEQA = 0;
+constexpr int SEQB = 1;
+
+
 Server::Server(const std::string &configFile, const string &strVocFile) : stopped(false) {
     std::cout << "Starting server..." << std::endl;
 
@@ -71,8 +75,6 @@ void Server::Run() {
     std::vector<MapPoint*> mappointsSeqA = clients[0]->mpMap->GetAllMapPoints();
     std::vector<MapPoint*> mappointsSeqB = clients[1]->mpMap->GetAllMapPoints();
 
-    constexpr int SEQA = 0;
-    constexpr int SEQB = 1;
 
     // while(!stopped) {
     for(KeyFrame* keyframe : keyframesSeqA) {
@@ -100,20 +102,18 @@ void Server::Run() {
         CopyKeyFrameConnections(keyframe);
     }
 
+    FindAprilTagConnections();
+    
     for(KeyFrame* keyframe : globalMap->GetAllKeyFrames()) {
         globalLoopClosing->InsertKeyFrame(keyframe);
+        std::this_thread::sleep_for(50ms);
     }
 
-    // for(KeyFrame* keyframe : keyframesSeqB) {
-    //     InsertNewKeyFrame(keyframe, offset);
-    //     std::this_thread::sleep_for(50ms);
-    // }
-
-    // Wait for loop closing to process all keyframes
-    while(globalLoopClosing->CheckNewKeyFrames()) std::this_thread::sleep_for(1s);
-    while(globalLoopClosing->isFinishedGBA()) std::this_thread::sleep_for(1s);
-    // Stop loop closing once we have processed all keyframes
-    globalLoopClosing->RequestFinish();
+    // // Launch a new thread to perform Global Bundle Adjustment
+    // globalLoopClosing->mbRunningGBA = true;
+    // globalLoopClosing->mbFinishedGBA = false;
+    // globalLoopClosing->mbStopGBA = false;
+    // new thread(&GlobalLoopClosing::RunGlobalBundleAdjustment,this,mpCurrentKF->mnId);
 
 }
 
@@ -121,6 +121,12 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence) {
     KeyFrame* newKeyFrame = new KeyFrame(keyframe, globalMap, globalDatabase);
     newKeyFrame->mnId += offset;
     newKeyFrame->sequence = sequence;
+
+    if(sequence == SEQA) {
+        timeDictionaryA[newKeyFrame->mTimeStamp] = newKeyFrame;
+    } else {
+        timeDictionaryB[newKeyFrame->mTimeStamp] = newKeyFrame;
+    }
 
     newKeyFrame->ComputeBoW();
     globalMap->AddKeyFrame(newKeyFrame);
@@ -194,6 +200,22 @@ void Server::CopyKeyFrameConnections(KeyFrame* keyframe) {
     for(KeyFrame* loopClosure : keyframe->mspLoopEdges) {
         KeyFrame* globalLoopClosure = keyFrameDictionary[loopClosure];
         globalKeyFrame->mspLoopEdges.insert(globalLoopClosure);
+    }
+}
+
+void Server::FindAprilTagConnections() {
+    for(KeyFrame* keyframe : globalMap->GetAllKeyFrames()) {
+        if(keyframe->detectedAprilTag) {
+            double timestamp = keyframe->mTimeStamp;
+            std::map<double, KeyFrame*>::iterator it;
+            if(keyframe->sequence == SEQA) {
+                it = timeDictionaryB.lower_bound(timestamp);
+            } else {
+                it = timeDictionaryA.lower_bound(timestamp);
+            }
+
+            keyframe->aprilTagKeyFrame = it->second;
+        }
     }
 }
 
