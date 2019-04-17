@@ -556,10 +556,12 @@ int ORBmatcher::SearchByBoW(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
                 const size_t idx1 = f1it->second[i1];
 
                 MapPoint* pMP1 = vpMapPoints1[idx1];
-                if(!pMP1)
+                if(!pMP1) {
                     continue;
-                if(pMP1->isBad())
+                }
+                if(pMP1->isBad()) {
                     continue;
+                }
 
                 const cv::Mat &d1 = Descriptors1.row(idx1);
 
@@ -573,11 +575,13 @@ int ORBmatcher::SearchByBoW(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
 
                     MapPoint* pMP2 = vpMapPoints2[idx2];
 
-                    if(vbMatched2[idx2] || !pMP2)
+                    if(vbMatched2[idx2] || !pMP2) {
                         continue;
+                    }
 
-                    if(pMP2->isBad())
+                    if(pMP2->isBad()) {
                         continue;
+                    }
 
                     const cv::Mat &d2 = Descriptors2.row(idx2);
 
@@ -650,6 +654,8 @@ int ORBmatcher::SearchByBoW(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
             }
         }
     }
+
+    std::cout << "numatches" << nmatches << std::endl;
 
     return nmatches;
 }

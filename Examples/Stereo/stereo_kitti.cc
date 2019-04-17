@@ -34,8 +34,10 @@ using namespace std;
 
 constexpr size_t seq_len = 4540;
 constexpr size_t seq_A_start = 0;
-constexpr size_t seq_A_end = 2270;
-constexpr size_t seq_B_start = 2270;
+constexpr size_t seq_A_end = 100;
+// constexpr size_t seq_A_end = 2400;
+constexpr size_t seq_B_start = 4440;
+// constexpr size_t seq_B_start = 2270;
 constexpr size_t seq_B_end = 4540;
 
 
@@ -155,6 +157,10 @@ int main(int argc, char **argv)
         }
     }
 
+    // Wait for the clients to finish processing
+    std::this_thread::sleep_for(5s);
+
+    // Disable local mapping and loop closing threads. Keeps viewer alive
     SLAM1->ActivateLocalizationMode();
     SLAM2->ActivateLocalizationMode();
 

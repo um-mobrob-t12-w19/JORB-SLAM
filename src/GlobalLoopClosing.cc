@@ -71,12 +71,19 @@ void GlobalLoopClosing::Run()
             if(DetectLoop())
             {
                 std::cout << "Global loop detected" << std::endl;
+
+                // for(KeyFrame* candidate : mvpEnoughConsistentCandidates) {
+                //     if(candidate->sequence == mpCurrentKF->sequence) {
+                //         std::cout << "BAD match!" << std::endl;
+                //     }
+                // }
                // Compute similarity transformation [sR|t]
                // In the stereo/RGBD case s=1
                if(ComputeSim3())
                {
+                   std::cout << "Computed sim3" << std::endl;
                    // Perform loop fusion and pose graph optimization
-                   CorrectLoop();
+                //    CorrectLoop();
                }
             }
         }       
@@ -144,7 +151,8 @@ bool GlobalLoopClosing::DetectLoop()
     }
 
     // Query the database imposing the minimum score
-    vector<KeyFrame*> vpCandidateKFs = mpKeyFrameDB->DetectLoopCandidates(mpCurrentKF, minScore);
+    // Query as server to reject loop closures in the same sequence
+    vector<KeyFrame*> vpCandidateKFs = mpKeyFrameDB->DetectLoopCandidates(mpCurrentKF, minScore, true);
 
     // If there are no loop candidates, just add new keyframe and return false
     if(vpCandidateKFs.empty())
@@ -239,6 +247,7 @@ bool GlobalLoopClosing::ComputeSim3()
     // For each consistent loop candidate we try to compute a Sim3
 
     const int nInitialCandidates = mvpEnoughConsistentCandidates.size();
+    std::cout << "Num candidates initial: " <<  nInitialCandidates << std::endl;
 
     // We compute first ORB matches for each candidate
     // If enough matches are found, we setup a Sim3Solver
@@ -269,7 +278,7 @@ bool GlobalLoopClosing::ComputeSim3()
         }
 
         int nmatches = matcher.SearchByBoW(mpCurrentKF,pKF,vvpMapPointMatches[i]);
-
+        std::cout << "Num orb matches "  << nmatches << std::endl;
         if(nmatches<20)
         {
             vbDiscarded[i] = true;
@@ -284,6 +293,9 @@ bool GlobalLoopClosing::ComputeSim3()
 
         nCandidates++;
     }
+
+    std::cout << "Num candidates pre-ransac: " <<  nCandidates << std::endl;
+
 
     bool bMatch = false;
 
@@ -347,6 +359,8 @@ bool GlobalLoopClosing::ComputeSim3()
         }
     }
 
+    std::cout << "Num candidates post-ransac: " <<  nCandidates << std::endl;
+
     if(!bMatch)
     {
         for(int i=0; i<nInitialCandidates; i++)
@@ -388,6 +402,7 @@ bool GlobalLoopClosing::ComputeSim3()
             nTotalMatches++;
     }
 
+    std::cout << nTotalMatches << std::endl;
     if(nTotalMatches>=40)
     {
         for(int i=0; i<nInitialCandidates; i++)

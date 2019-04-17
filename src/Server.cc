@@ -55,6 +55,9 @@ void Server::Run() {
 
     bool monocular = config["monocular"].as<bool>();
 
+    keyFrameDictionary[nullptr] = nullptr;
+    mapPointDictionary[nullptr] = nullptr;
+
     globalDatabase = new KeyFrameDatabase(*vocabulary);
     globalLoopClosing = new GlobalLoopClosing(globalMap, globalDatabase, vocabulary, !monocular);
 
@@ -106,6 +109,12 @@ void Server::Run() {
     //     std::this_thread::sleep_for(50ms);
     // }
 
+    // Wait for loop closing to process all keyframes
+    while(globalLoopClosing->CheckNewKeyFrames()) std::this_thread::sleep_for(1s);
+    while(globalLoopClosing->isFinishedGBA()) std::this_thread::sleep_for(1s);
+    // Stop loop closing once we have processed all keyframes
+    globalLoopClosing->RequestFinish();
+
 }
 
 void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence) {
@@ -113,32 +122,39 @@ void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence) {
     newKeyFrame->mnId += offset;
     newKeyFrame->sequence = sequence;
 
+    newKeyFrame->ComputeBoW();
     globalMap->AddKeyFrame(newKeyFrame);
     keyFrameDictionary[keyframe] = newKeyFrame;
 }
 
 void Server::CopyKeyFrameMappoints(KeyFrame* keyframe) {
     KeyFrame* globalKeyFrame = keyFrameDictionary[keyframe];
-
+    globalKeyFrame->mvpMapPoints.resize(keyframe->GetMapPointMatches().size());
     // Transfer map points
     size_t i = 0;
-    for(MapPoint* point : keyframe->GetMapPointMatches()) {
-        if(point == nullptr) continue;
-        if(point->isBad()) continue;
+    for(MapPoint* point : keyframe->mvpMapPoints) {
+        if(!point) std::cout << "null" << std::endl;
+        else std::cout << "nnull" << std::endl;
+
         if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
             // Point not in server map
             MapPoint* newMapPoint = new MapPoint(point->GetWorldPos(), globalKeyFrame, globalMap);
             newMapPoint->AddObservation(globalKeyFrame,i);
-            globalKeyFrame->AddMapPoint(point,i);
+            globalKeyFrame->AddMapPoint(newMapPoint,i);
             globalMap->AddMapPoint(newMapPoint);
             mapPointDictionary[point] = newMapPoint;
         } else {
             // Point in server map
             MapPoint* globalPoint = mapPointDictionary[point];
-            globalPoint->AddObservation(globalKeyFrame,i);
+            if(globalPoint) {
+                globalPoint->AddObservation(globalKeyFrame,i);
+            }
             globalKeyFrame->AddMapPoint(globalPoint, i);
         }
-    } 
+
+        globalKeyFrame->mvpMapPoints[i] = mapPointDictionary[point];
+        i++;
+    }
 }
 
 void Server::CopyKeyFrameConnections(KeyFrame* keyframe) {
