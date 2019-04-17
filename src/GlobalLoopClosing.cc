@@ -47,17 +47,6 @@ GlobalLoopClosing::GlobalLoopClosing(Map *pMap, KeyFrameDatabase *pDB, ORBVocabu
     mnCovisibilityConsistencyTh = 3;
 }
 
-void GlobalLoopClosing::SetTracker(Tracking *pTracker)
-{
-    mpTracker=pTracker;
-}
-
-void GlobalLoopClosing::SetLocalMapper(LocalMapping *pLocalMapper)
-{
-    mpLocalMapper=pLocalMapper;
-}
-
-
 void GlobalLoopClosing::Run()
 {
     mbFinished =false;
@@ -67,28 +56,23 @@ void GlobalLoopClosing::Run()
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
         {
+            std::cout << "New Keyframes" << std::endl;
             // Detect loop candidates and check covisibility consistency
             if(DetectLoop())
             {
                 std::cout << "Global loop detected" << std::endl;
 
-                // for(KeyFrame* candidate : mvpEnoughConsistentCandidates) {
-                //     if(candidate->sequence == mpCurrentKF->sequence) {
-                //         std::cout << "BAD match!" << std::endl;
-                //     }
-                // }
                // Compute similarity transformation [sR|t]
                // In the stereo/RGBD case s=1
                if(ComputeSim3())
                {
-                   std::cout << "Computed sim3" << std::endl;
+                //    std::cout << "Computed sim3" << std::endl;
                    // Perform loop fusion and pose graph optimization
-                //    CorrectLoop();
+                   CorrectLoop();
+                   std::cout << "LOOPED MY DAWG" << std::endl;
                }
             }
         }       
-
-        ResetIfRequested();
 
         if(CheckFinish())
             break;
@@ -127,7 +111,6 @@ bool GlobalLoopClosing::DetectLoop()
     {
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
-        std::cout << "Less than 10" << std::endl;
         return false;
     }
 
@@ -244,10 +227,10 @@ bool GlobalLoopClosing::DetectLoop()
 
 bool GlobalLoopClosing::ComputeSim3()
 {
+    std::cout << "Computing sim3 1" << std::endl;
     // For each consistent loop candidate we try to compute a Sim3
 
     const int nInitialCandidates = mvpEnoughConsistentCandidates.size();
-    std::cout << "Num candidates initial: " <<  nInitialCandidates << std::endl;
 
     // We compute first ORB matches for each candidate
     // If enough matches are found, we setup a Sim3Solver
@@ -264,6 +247,7 @@ bool GlobalLoopClosing::ComputeSim3()
 
     int nCandidates=0; //candidates with enough matches
 
+    std::cout << "Computing sim3 2" << std::endl;
     for(int i=0; i<nInitialCandidates; i++)
     {
         KeyFrame* pKF = mvpEnoughConsistentCandidates[i];
@@ -278,7 +262,6 @@ bool GlobalLoopClosing::ComputeSim3()
         }
 
         int nmatches = matcher.SearchByBoW(mpCurrentKF,pKF,vvpMapPointMatches[i]);
-        std::cout << "Num orb matches "  << nmatches << std::endl;
         if(nmatches<20)
         {
             vbDiscarded[i] = true;
@@ -294,9 +277,7 @@ bool GlobalLoopClosing::ComputeSim3()
         nCandidates++;
     }
 
-    std::cout << "Num candidates pre-ransac: " <<  nCandidates << std::endl;
-
-
+    std::cout << "Computing sim3 3" << std::endl;
     bool bMatch = false;
 
     // Perform alternatively RANSAC iterations for each candidate
@@ -305,6 +286,7 @@ bool GlobalLoopClosing::ComputeSim3()
     {
         for(int i=0; i<nInitialCandidates; i++)
         {
+            std::cout << "ransac 1" << std::endl;
             if(vbDiscarded[i])
                 continue;
 
@@ -314,10 +296,11 @@ bool GlobalLoopClosing::ComputeSim3()
             vector<bool> vbInliers;
             int nInliers;
             bool bNoMore;
-
+            std::cout << "ransac 2" << std::endl;
             Sim3Solver* pSolver = vpSim3Solvers[i];
             cv::Mat Scm  = pSolver->iterate(5,bNoMore,vbInliers,nInliers);
 
+            std::cout << "ransac 3" << std::endl;
             // If Ransac reachs max. iterations discard keyframe
             if(bNoMore)
             {
@@ -325,9 +308,11 @@ bool GlobalLoopClosing::ComputeSim3()
                 nCandidates--;
             }
 
+            std::cout << "ransac 4" << std::endl;
             // If RANSAC returns a Sim3, perform a guided matching and optimize with all correspondences
             if(!Scm.empty())
             {
+                std::cout << "ransac 5" << std::endl;
                 vector<MapPoint*> vpMapPointMatches(vvpMapPointMatches[i].size(), static_cast<MapPoint*>(NULL));
                 for(size_t j=0, jend=vbInliers.size(); j<jend; j++)
                 {
@@ -335,14 +320,18 @@ bool GlobalLoopClosing::ComputeSim3()
                        vpMapPointMatches[j]=vvpMapPointMatches[i][j];
                 }
 
+                std::cout << "ransac 6" << std::endl;
                 cv::Mat R = pSolver->GetEstimatedRotation();
                 cv::Mat t = pSolver->GetEstimatedTranslation();
                 const float s = pSolver->GetEstimatedScale();
+                std::cout << "ransac 7" << std::endl;
                 matcher.SearchBySim3(mpCurrentKF,pKF,vpMapPointMatches,s,R,t,7.5);
 
+                std::cout << "ransac 8" << std::endl;
                 g2o::Sim3 gScm(Converter::toMatrix3d(R),Converter::toVector3d(t),s);
                 const int nInliers = Optimizer::OptimizeSim3(mpCurrentKF, pKF, vpMapPointMatches, gScm, 10, mbFixScale);
 
+                std::cout << "ransac 9" << std::endl;
                 // If optimization is succesful stop ransacs and continue
                 if(nInliers>=20)
                 {
@@ -355,12 +344,12 @@ bool GlobalLoopClosing::ComputeSim3()
                     mvpCurrentMatchedPoints = vpMapPointMatches;
                     break;
                 }
+                std::cout << "ransac 10" << std::endl;
             }
         }
     }
 
-    std::cout << "Num candidates post-ransac: " <<  nCandidates << std::endl;
-
+    std::cout << "Computing sim3 4" << std::endl;
     if(!bMatch)
     {
         for(int i=0; i<nInitialCandidates; i++)
@@ -369,6 +358,7 @@ bool GlobalLoopClosing::ComputeSim3()
         return false;
     }
 
+    std::cout << "Computing sim3 5" << std::endl;
     // Retrieve MapPoints seen in Loop Keyframe and neighbors
     vector<KeyFrame*> vpLoopConnectedKFs = mpMatchedKF->GetVectorCovisibleKeyFrames();
     vpLoopConnectedKFs.push_back(mpMatchedKF);
@@ -391,6 +381,7 @@ bool GlobalLoopClosing::ComputeSim3()
         }
     }
 
+    std::cout << "Computing sim3 6" << std::endl;
     // Find more matches projecting with the computed Sim3
     matcher.SearchByProjection(mpCurrentKF, mScw, mvpLoopMapPoints, mvpCurrentMatchedPoints,10);
 
@@ -417,16 +408,13 @@ bool GlobalLoopClosing::ComputeSim3()
         mpCurrentKF->SetErase();
         return false;
     }
+    std::cout << "Computing sim3 7" << std::endl;
 
 }
 
 void GlobalLoopClosing::CorrectLoop()
 {
     cout << "Loop detected!" << endl;
-
-    // Send a stop signal to Local Mapping
-    // Avoid new keyframes are inserted while correcting the loop
-    mpLocalMapper->RequestStop();
 
     // If a Global Bundle Adjustment is running, abort it
     if(isRunningGBA())
@@ -443,12 +431,6 @@ void GlobalLoopClosing::CorrectLoop()
         }
     }
 
-    // Wait until Local Mapping has effectively stopped
-    while(!mpLocalMapper->isStopped())
-    {
-        usleep(1000);
-    }
-
     // Ensure current keyframe is updated
     mpCurrentKF->UpdateConnections();
 
@@ -459,7 +441,6 @@ void GlobalLoopClosing::CorrectLoop()
     KeyFrameAndPose CorrectedSim3, NonCorrectedSim3;
     CorrectedSim3[mpCurrentKF]=mg2oScw;
     cv::Mat Twc = mpCurrentKF->GetPoseInverse();
-
 
     {
         // Get Map Mutex
@@ -586,7 +567,6 @@ void GlobalLoopClosing::CorrectLoop()
 
     // Optimize graph
     Optimizer::OptimizeEssentialGraph(mpMap, mpMatchedKF, mpCurrentKF, NonCorrectedSim3, CorrectedSim3, LoopConnections, mbFixScale);
-
     mpMap->InformNewBigChange();
 
     // Add loop edge
@@ -598,9 +578,6 @@ void GlobalLoopClosing::CorrectLoop()
     mbFinishedGBA = false;
     mbStopGBA = false;
     mpThreadGBA = new thread(&GlobalLoopClosing::RunGlobalBundleAdjustment,this,mpCurrentKF->mnId);
-
-    // Loop closed. Release Local Mapping.
-    mpLocalMapper->Release();    
 
     mLastLoopKFid = mpCurrentKF->mnId;   
 }
@@ -683,13 +660,7 @@ void GlobalLoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
         {
             cout << "Global Bundle Adjustment finished" << endl;
             cout << "Updating map ..." << endl;
-            mpLocalMapper->RequestStop();
             // Wait until Local Mapping has effectively stopped
-
-            while(!mpLocalMapper->isStopped() && !mpLocalMapper->isFinished())
-            {
-                usleep(1000);
-            }
 
             // Get Map Mutex
             unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
@@ -758,8 +729,6 @@ void GlobalLoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
             }            
 
             mpMap->InformNewBigChange();
-
-            mpLocalMapper->Release();
 
             cout << "Map updated!" << endl;
         }

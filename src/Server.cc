@@ -133,12 +133,10 @@ void Server::CopyKeyFrameMappoints(KeyFrame* keyframe) {
     // Transfer map points
     size_t i = 0;
     for(MapPoint* point : keyframe->mvpMapPoints) {
-        if(!point) std::cout << "null" << std::endl;
-        else std::cout << "nnull" << std::endl;
-
         if(mapPointDictionary.find(point) == mapPointDictionary.end()) {
             // Point not in server map
             MapPoint* newMapPoint = new MapPoint(point->GetWorldPos(), globalKeyFrame, globalMap);
+            newMapPoint->mDescriptor = point->mDescriptor.clone();
             newMapPoint->AddObservation(globalKeyFrame,i);
             globalKeyFrame->AddMapPoint(newMapPoint,i);
             globalMap->AddMapPoint(newMapPoint);

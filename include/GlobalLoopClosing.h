@@ -53,10 +53,6 @@ public:
 
     GlobalLoopClosing(Map* pMap, KeyFrameDatabase* pDB, ORBVocabulary* pVoc,const bool bFixScale);
 
-    void SetTracker(Tracking* pTracker);
-
-    void SetLocalMapper(LocalMapping* pLocalMapper);
-
     // Main function
     void Run();
 
@@ -106,12 +102,9 @@ protected:
     std::mutex mMutexFinish;
 
     Map* mpMap;
-    Tracking* mpTracker;
 
     KeyFrameDatabase* mpKeyFrameDB;
     ORBVocabulary* mpORBVocabulary;
-
-    LocalMapping *mpLocalMapper;
 
     std::list<KeyFrame*> mlpLoopKeyFrameQueue;
 

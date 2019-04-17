@@ -34,10 +34,10 @@ using namespace std;
 
 constexpr size_t seq_len = 4540;
 constexpr size_t seq_A_start = 0;
-constexpr size_t seq_A_end = 100;
-// constexpr size_t seq_A_end = 2400;
-constexpr size_t seq_B_start = 4440;
-// constexpr size_t seq_B_start = 2270;
+// constexpr size_t seq_A_end = 100;
+constexpr size_t seq_A_end = 2400;
+// constexpr size_t seq_B_start = 4440;
+constexpr size_t seq_B_start = 2270;
 constexpr size_t seq_B_end = 4540;
 
 
@@ -212,8 +212,6 @@ void LoadImages(const string &strPathToSequence,
 
     size_t seq_A_size = 0;
     size_t seq_B_size = 0;
-
-    std::cout << "Here" << std::endl;
 
     while(!fTimes.eof())
     {
