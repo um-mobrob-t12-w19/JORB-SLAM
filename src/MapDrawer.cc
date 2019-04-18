@@ -183,20 +183,20 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
         glBegin(GL_LINES);
 
         // April Tag loops
-        // for(KeyFrame* keyframe : vpKFs) {
-        //     if(!keyframe) continue;
-        //     if(keyframe->isBad()) continue;
+        for(KeyFrame* keyframe : vpKFs) {
+            if(!keyframe) continue;
+            if(keyframe->isBad()) continue;
 
-        //     cv::Mat Ow = keyframe->GetCameraCenter();
-        //     if(keyframe->detectedAprilTag) {
-        //         KeyFrame* detectedKF = keyframe->aprilTagKeyFrame;
-        //         if(detectedKF) {
-        //             cv::Mat Owp = detectedKF->GetCameraCenter();
-        //             glVertex3f(Ow.at<float>(0),Ow.at<float>(1),Ow.at<float>(2));
-        //             glVertex3f(Owp.at<float>(0),Owp.at<float>(1),Owp.at<float>(2));
-        //         }
-        //     }
-        // }
+            cv::Mat Ow = keyframe->GetCameraCenter();
+            if(keyframe->detectedAprilTag) {
+                KeyFrame* detectedKF = keyframe->aprilTagKeyFrame;
+                if(detectedKF) {
+                    cv::Mat Owp = detectedKF->GetCameraCenter();
+                    glVertex3f(Ow.at<float>(0),Ow.at<float>(1),Ow.at<float>(2));
+                    glVertex3f(Owp.at<float>(0),Owp.at<float>(1),Owp.at<float>(2));
+                }
+            }
+        }
 
         glEnd();
     }
