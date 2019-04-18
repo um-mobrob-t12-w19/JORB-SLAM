@@ -4,17 +4,15 @@
 # Camera Parameters. Adjust them!
 #--------------------------------------------------------------------------------------------
 
-# Camera intrinsics for downward facing camera (yellow label)
-
 # Camera calibration and distortion parameters (OpenCV) 
-Camera.fx: 610.8385
-Camera.fy: 608.7019
-Camera.cx: 314.4679
-Camera.cy: 227.7993 
+Camera.fx: 634.8216
+Camera.fy: 639.9758
+Camera.cx: 325.2298
+Camera.cy: 227.8964 
 
-Camera.k1: 0.0976
-Camera.k2: -0.0758
-Camera.k3: -0.4681
+Camera.k1: 0.1326
+Camera.k2: -0.1851
+Camera.k3: 0
 Camera.p1: 0
 Camera.p2: 0
 
