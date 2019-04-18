@@ -90,58 +90,67 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imRGB1, imD1, imRGB2, imD2;
-    for(int ni=1010; ni<1200; ni++) // 100 frames to skip the start part (for synchronizing)
+    size_t seqAIdx = 0;
+    size_t seqBIdx = 0;
+    size_t i = 0;
+    while(true) // 100 frames to skip the start part (for synchronizing)
     {
-        // Read image and depthmap from file for SLAM1
-        imRGB1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB1[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imD1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD1[ni],CV_LOAD_IMAGE_UNCHANGED);
-        //  Read image and depthmap from file for SLAM2
-        imRGB2 = cv::imread(string(argv[6])+"/"+vstrImageFilenamesRGB2[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imD2 = cv::imread(string(argv[6])+"/"+vstrImageFilenamesD2[ni],CV_LOAD_IMAGE_UNCHANGED);
-        double tframe1 = vTimestamps1[ni], tframe2 = vTimestamps2[ni];
-
-        if(imRGB1.empty())
-        {
-            cerr << endl << "Failed to load color image at: "
-                 << string(argv[3]) << "/" << vstrImageFilenamesRGB1[ni] << endl;
-            return 1;
-        }
-        if(imD1.empty()) {
-            cerr << endl << "Failed to load depth image at: " 
-            << string(argv[3]) << "/" << vstrImageFilenamesD1[ni] << endl;
-            return 1;
-        }
+        if(vTimestamps1.size() <= seqAIdx || vTimestamps2.size() <= seqBIdx) break;
+        
+        double tframe1 = vTimestamps1[seqAIdx], tframe2 = vTimestamps2[seqBIdx];
+        double min_time = std::min(tframe1, tframe2);
 
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 
-        // Pass the image to the SLAM system
-        SLAM1->TrackRGBD(imRGB1,imD1,tframe1);
-        SLAM2->TrackRGBD(imRGB2,imD2,tframe2);
+        if(tframe1 < tframe2) {
+            // Read image and depthmap from file for SLAM1
+            imRGB1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB1[seqAIdx],CV_LOAD_IMAGE_UNCHANGED);
+            imD1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD1[seqAIdx],CV_LOAD_IMAGE_UNCHANGED);
+            
+            if(imRGB1.empty())
+            {
+                cerr << endl << "Failed to load color image at: "
+                    << string(argv[3]) << "/" << vstrImageFilenamesRGB1[seqAIdx] << endl;
+                return 1;
+            }
+            if(imD1.empty()) {
+                cerr << endl << "Failed to load depth image at: " 
+                << string(argv[3]) << "/" << vstrImageFilenamesD1[seqAIdx] << endl;
+                return 1;
+            }
+
+            SLAM1->TrackRGBD(imRGB1,imD1,tframe1);
+            seqAIdx++;
+        } else {
+            //  Read image and depthmap from file for SLAM2
+            imRGB2 = cv::imread(string(argv[6])+"/"+vstrImageFilenamesRGB2[seqBIdx],CV_LOAD_IMAGE_UNCHANGED);
+            imD2 = cv::imread(string(argv[6])+"/"+vstrImageFilenamesD2[seqBIdx],CV_LOAD_IMAGE_UNCHANGED);
+
+            if(imRGB2.empty())
+            {
+                cerr << endl << "Failed to load color image at: "
+                    << string(argv[3]) << "/" << vstrImageFilenamesRGB2[seqBIdx] << endl;
+                return 1;
+            }
+            if(imD2.empty()) {
+                cerr << endl << "Failed to load depth image at: " 
+                << string(argv[3]) << "/" << vstrImageFilenamesD2[seqBIdx] << endl;
+                return 1;
+            }
+
+            SLAM2->TrackRGBD(imRGB2,imD2,tframe2);
+            seqBIdx++;
+        }
 
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
+        
+        double tframe1 = vTimestamps1[seqAIdx], tframe2 = vTimestamps2[seqBIdx];
+        double min_time2 = std::min(tframe1, tframe2);
+        double r = min_time2 - min_time;
 
-        vTimesTrack[ni]=ttrack;
-
-        // Wait to load the next frame
-        double T1=0, T2=0;
-        if(ni<nImages-1)
-        {
-            T1 = vTimestamps1[ni+1]-tframe1;
-            T2 = vTimestamps2[ni+1]-tframe2;
-        }
-        else if(ni>0)
-        {
-            T1 = tframe1-vTimestamps1[ni-1];
-            T2 = tframe2-vTimestamps2[ni-1];
-        }
-
-        if(ttrack<T1 || ttrack<T2)
-        {
-            double T = T1 > T2 ? T1 : T2;
-            usleep((T-ttrack)*1e6 * 2); // Give more time for two threads
-        }
+        constexpr double sleep_multiplier = 2; // Run at half speed
+        usleep((r - ttrack) * 1e6 * sleep_multiplier) 
     }
 
     // Wait for the clients to finish processing
@@ -201,6 +210,8 @@ void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageF
             double t;
             string sRGB, sD;
             ss >> t;
+            // Sync starting time
+            if(t < 4) continue;
             vTimestamps.push_back(t);
             ss >> sRGB;
             vstrImageFilenamesRGB.push_back(sRGB);
