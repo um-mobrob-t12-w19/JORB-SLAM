@@ -22,6 +22,20 @@
 #include "Converter.h"
 #include "ORBmatcher.h"
 #include <thread>
+#include <math.h>
+#include <stdio.h>
+
+#include <apriltag/common/matd.h>
+#include <apriltag/common/zarray.h>
+#include <apriltag/common/homography.h>
+#include <apriltag/common/math_util.h>
+#include <iostream>
+
+#include "opencv2/opencv.hpp"
+
+
+using namespace std;
+using namespace cv;
 
 namespace ORB_SLAM2
 {
@@ -55,6 +69,11 @@ Frame::Frame(const Frame &frame)
 
     if(!frame.mTcw.empty())
         SetPose(frame.mTcw);
+
+    // if(!td && !tf) {
+    //     tf = tag36h11_create();
+    //     td = apriltag_detector_add_family(td, tf);
+    // }
 }
 
 
@@ -114,6 +133,15 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     mb = mbf/fx;
 
     AssignFeaturesToGrid();
+
+    // if(!td && !tf) {
+    //     tf = tag36h11_create();
+    //     td = apriltag_detector_add_family(td, tf);
+    // }
+
+    // Stero version
+    // DetectAprilTags(imLeft);
+
 }
 
 Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
@@ -168,6 +196,8 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
     mb = mbf/fx;
 
     AssignFeaturesToGrid();
+
+    DetectAprilTags(imGray);
 }
 
 
@@ -225,7 +255,84 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
     mb = mbf/fx;
 
     AssignFeaturesToGrid();
+
+    DetectAprilTags(imGray);
 }
+
+void Frame::DetectAprilTags(const cv::Mat& imGray) {
+     
+
+    apriltag_family_t *tf = NULL;
+    tf = tag36h11_create();
+    apriltag_detector_t *td = apriltag_detector_create();
+    apriltag_detector_add_family(td, tf);
+
+
+    // Set these
+    td->quad_decimate = 2.0;
+    td->quad_sigma = 0.0;
+    td->nthreads = 1;
+    td->debug = 0;
+    td->refine_edges = 1;
+
+
+   
+        // cap >> frame;
+        // cvtColor(frame, imGray, COLOR_BGR2GRAY);
+
+        // Make an image_u8_t header for the Mat data
+        image_u8_t im = { .width = imGray.cols,
+            .height = imGray.rows,
+            .stride = imGray.cols,
+            .buf = imGray.data
+        };
+
+        zarray_t *detections = apriltag_detector_detect(td, &im);
+        if(zarray_size(detections)!=0)
+          {detectedAprilTag = true;
+          }
+        // Draw detection outlines
+        for (int i = 0; i < zarray_size(detections); i++) {
+            apriltag_detection_t *det;
+            zarray_get(detections, i, &det);            
+            mK;
+
+            apriltag_detection_info_t info;
+            info.det = det;
+            info.tagsize = 0.173;
+            info.fx = fx;
+            info.fy = fy;
+            info.cx = cx;
+            info.cy = cy;
+
+            apriltag_pose_t pose;
+            double err = estimate_tag_pose(&info, &pose);
+            // cv::Mat pose_aug;
+            // hconcat(pose_aug,pose.R,pose.t)
+
+            Mat rot = Mat(3, 3, CV_32FC1, &(pose.R->data));
+            Mat tran = Mat(3, 1, CV_32FC1, &(pose.t->data));
+            Mat pose_f;
+            hconcat(pose_f,rot,tran);
+            Mat bottom = (Mat_<double>(1,3) << 0, 0, 0, 1);
+            vconcat(pose_f,pose_f,bottom);
+            aprilTagRelativePose = pose_f.clone();
+            
+            // double rot. = pose.R
+            // matd_print(pose.R,"%f ");
+        
+
+        zarray_destroy(detections);
+    }
+
+    
+
+    // apriltag_detector_destroy(td);
+
+
+    // getopt_destroy(getopt);
+}
+
 
 void Frame::AssignFeaturesToGrid()
 {
@@ -679,8 +786,5 @@ cv::Mat Frame::UnprojectStereo(const int &i)
         return cv::Mat();
 }
 
-void Frame::DetectAprilTags() {
-    // TODO: implement
-}
 
 } //namespace ORB_SLAM

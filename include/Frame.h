@@ -29,6 +29,22 @@
 #include "ORBVocabulary.h"
 #include "KeyFrame.h"
 #include "ORBextractor.h"
+extern "C" {
+    #include <apriltag/apriltag.h>
+// #include "apriltag.h"
+    #include <apriltag/tag36h11.h>
+// #include "tag25h9.h"
+// #include "tag16h5.h"
+// #include "tagCircle21h7.h"
+// #include "tagCircle49h12.h"
+// #include "tagCustom48h12.h"
+// #include "tagStandard41h12.h"
+// #include "tagStandard52h13.h"
+#include <apriltag/apriltag_pose.h>
+}
+
+using namespace std;
+using namespace cv;
 
 #include <opencv2/opencv.hpp>
 
@@ -98,7 +114,7 @@ public:
     // Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
     cv::Mat UnprojectStereo(const int &i);
 
-    void DetectAprilTags();
+    void DetectAprilTags(const cv::Mat& imGray);
 
 public:
     // Vocabulary used for relocalization.
@@ -189,9 +205,13 @@ public:
 
     static bool mbInitialComputations;
 
+    cv::Mat gray;
+
     bool detectedAprilTag;
     cv::Mat aprilTagRelativePose;
 
+    // static apriltag_family_t *tf;
+    // static apriltag_detector_t *td;
 private:
 
     // Undistort keypoints given OpenCV distortion parameters.
