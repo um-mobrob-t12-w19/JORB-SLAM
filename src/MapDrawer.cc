@@ -177,22 +177,26 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 
         glEnd();
 
-
         glLineWidth(mGraphLineWidth);
         // Red for april tag vehicle-to-vehicle lines
         glColor4f(1.0f,0.0f,0.0f,0.6f);
         glBegin(GL_LINES);
 
         // April Tag loops
-        for(KeyFrame* keyframe : vpKFs) {
-            cv::Mat Ow = keyframe->GetCameraCenter();
-            if(keyframe->detectedAprilTag) {
-                KeyFrame* detectedKF = keyframe->aprilTagKeyFrame;
-                cv::Mat Owp = detectedKF->GetCameraCenter();
-                glVertex3f(Ow.at<float>(0),Ow.at<float>(1),Ow.at<float>(2));
-                glVertex3f(Owp.at<float>(0),Owp.at<float>(1),Owp.at<float>(2));
-            }
-        }
+        // for(KeyFrame* keyframe : vpKFs) {
+        //     if(!keyframe) continue;
+        //     if(keyframe->isBad()) continue;
+
+        //     cv::Mat Ow = keyframe->GetCameraCenter();
+        //     if(keyframe->detectedAprilTag) {
+        //         KeyFrame* detectedKF = keyframe->aprilTagKeyFrame;
+        //         if(detectedKF) {
+        //             cv::Mat Owp = detectedKF->GetCameraCenter();
+        //             glVertex3f(Ow.at<float>(0),Ow.at<float>(1),Ow.at<float>(2));
+        //             glVertex3f(Owp.at<float>(0),Owp.at<float>(1),Owp.at<float>(2));
+        //         }
+        //     }
+        // }
 
         glEnd();
     }

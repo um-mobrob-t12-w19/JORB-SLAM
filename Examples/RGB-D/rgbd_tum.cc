@@ -75,7 +75,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imRGB, imD;
-    for(int ni=0; ni<nImages; ni++)
+    for(int ni=200; ni<nImages; ni++)
     {
         // Read image and depthmap from file
         imRGB = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB[ni],CV_LOAD_IMAGE_UNCHANGED);
@@ -94,20 +94,12 @@ int main(int argc, char **argv)
             return 1;
         }
 
-#ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
-#else
-        std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
-#endif
 
         // Pass the image to the SLAM system
         SLAM.TrackRGBD(imRGB,imD,tframe);
 
-#ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-#else
-        std::chrono::monotonic_clock::time_point t2 = std::chrono::monotonic_clock::now();
-#endif
 
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
 
@@ -120,8 +112,8 @@ int main(int argc, char **argv)
         else if(ni>0)
             T = tframe-vTimestamps[ni-1];
 
-        if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+        // if(ttrack<T)
+            // usleep((T-ttrack)*1e6);
     }
 
     // Stop all threads
