@@ -84,8 +84,13 @@ int main(int argc, char **argv)
 
         if(imRGB.empty())
         {
-            cerr << endl << "Failed to load image at: "
+            cerr << endl << "Failed to load color image at: "
                  << string(argv[3]) << "/" << vstrImageFilenamesRGB[ni] << endl;
+            return 1;
+        }
+        if(imD.empty()) {
+            cerr << endl << "Failed to load depth image at: " 
+            << string(argv[3]) << "/" << vstrImageFilenamesD[ni] << endl;
             return 1;
         }
 
