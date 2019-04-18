@@ -197,7 +197,7 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 
     AssignFeaturesToGrid();
 
-    DetectAprilTags(imGray);
+    DetectAprilTagsDepth(imGray, imDepth);
 }
 
 
@@ -255,13 +255,9 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extra
     mb = mbf/fx;
 
     AssignFeaturesToGrid();
-
-    DetectAprilTags(imGray);
 }
 
-void Frame::DetectAprilTags(const cv::Mat& imGray) {
-     
-
+void Frame::DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth) {
     apriltag_family_t *tf = NULL;
     tf = tag36h11_create();
     apriltag_detector_t *td = apriltag_detector_create();
@@ -290,7 +286,6 @@ void Frame::DetectAprilTags(const cv::Mat& imGray) {
     zarray_t *detections = apriltag_detector_detect(td, &im);
     if(zarray_size(detections)!=0) {
         detectedAprilTag = true;
-        std::cout << "Detected!" << std::endl;
 
         int i = 0;
         apriltag_detection_t *det;
@@ -307,7 +302,6 @@ void Frame::DetectAprilTags(const cv::Mat& imGray) {
 
         apriltag_pose_t pose;
         double err = estimate_tag_pose(&info, &pose);
-        matd_print((pose.R), "%f");
 
         Mat rot = Mat(3, 3, CV_64FC1, &(pose.R->data));
         Mat tran = Mat(3, 1, CV_64FC1, &(pose.t->data));
@@ -332,8 +326,9 @@ void Frame::DetectAprilTags(const cv::Mat& imGray) {
         aprilTagRelativePose.at<double>(3, 3) = 1;
 
         zarray_destroy(detections);
-        std::cout << "Finished dection" << std::endl;
     }
+
+    apriltag_detector_destroy(td);
 }
 
 

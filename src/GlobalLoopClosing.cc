@@ -56,18 +56,15 @@ void GlobalLoopClosing::Run()
         // Check if there are keyframes in the queue
         if(CheckNewKeyFrames())
         {
-            std::cout << "Checked new frames" << std::endl;
             // Detect loop candidates and check covisibility consistency
             if(DetectLoop())
             {
-                std::cout << "Checked new frames" << std::endl;
                 // Compute similarity transformation [sR|t]
                 // In the stereo/RGBD case s=1
                 if(ComputeSim3())
                 {
                     // Perform loop fusion and pose graph optimization
                     CorrectLoop();
-                    std::cout << "Corrected Loop" << std::endl;
                 }
             }
         }       

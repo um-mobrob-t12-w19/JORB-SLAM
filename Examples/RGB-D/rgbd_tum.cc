@@ -31,6 +31,9 @@
 
 using namespace std;
 
+constexpr double start_time = 50;
+constexpr double end_time = 62;
+
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
                 vector<string> &vstrImageFilenamesD, vector<double> &vTimestamps);
 
@@ -73,7 +76,6 @@ int main(int argc, char **argv)
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::RGBD, string("SLAM1"), true));
 	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[5], ORB_SLAM2::System::RGBD, string("SLAM2"), true));
-
     
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[8], argv[1]));
 
@@ -95,13 +97,17 @@ int main(int argc, char **argv)
     size_t i = 0;
     while(true) // 100 frames to skip the start part (for synchronizing)
     {
-        if(vTimestamps1.size() <= seqAIdx || vTimestamps2.size() <= seqBIdx) break;
+        if(vTimestamps1.size() <= seqAIdx || vTimestamps2.size() <= seqBIdx) {
+            cout << "Breaking" << endl;
+            break;
+        }
         
         double tframe1 = vTimestamps1[seqAIdx], tframe2 = vTimestamps2[seqBIdx];
         double min_time = std::min(tframe1, tframe2);
 
-        std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+        if(min_time >= end_time) break;
 
+        std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
         if(tframe1 < tframe2) {
             // Read image and depthmap from file for SLAM1
             imRGB1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB1[seqAIdx],CV_LOAD_IMAGE_UNCHANGED);
@@ -145,12 +151,13 @@ int main(int argc, char **argv)
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
         
-        double tframe1 = vTimestamps1[seqAIdx], tframe2 = vTimestamps2[seqBIdx];
+        tframe1 = vTimestamps1[seqAIdx];
+        tframe2 = vTimestamps2[seqBIdx];
         double min_time2 = std::min(tframe1, tframe2);
         double r = min_time2 - min_time;
 
-        constexpr double sleep_multiplier = 2; // Run at half speed
-        usleep((r - ttrack) * 1e6 * sleep_multiplier) 
+        constexpr double sleep_multiplier = 5; // Run at half speed
+        std::this_thread::sleep_for(sleep_multiplier * r * 1s);
     }
 
     // Wait for the clients to finish processing
@@ -211,7 +218,7 @@ void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageF
             string sRGB, sD;
             ss >> t;
             // Sync starting time
-            if(t < 4) continue;
+            if(t < start_time) continue;
             vTimestamps.push_back(t);
             ss >> sRGB;
             vstrImageFilenamesRGB.push_back(sRGB);

@@ -114,7 +114,7 @@ public:
     // Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
     cv::Mat UnprojectStereo(const int &i);
 
-    void DetectAprilTags(const cv::Mat& imGray);
+    void DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth);
 
 public:
     // Vocabulary used for relocalization.
