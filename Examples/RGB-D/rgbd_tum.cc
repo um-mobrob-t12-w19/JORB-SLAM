@@ -36,34 +36,47 @@ void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageF
 
 int main(int argc, char **argv)
 {
-    if(argc != 5)
+    if(argc != 9)
     {
-        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings path_to_sequence path_to_association" << endl;
+        cerr << endl << "Usage: ./rgbd_tum path_to_vocabulary path_to_settings1 path_to_sequence1 path_to_association1 path_to_settings2 path_to_sequence2 path_to_association2 path_to_server_settings" << endl;
         return 1;
     }
 
     // Retrieve paths to images
-    vector<string> vstrImageFilenamesRGB;
-    vector<string> vstrImageFilenamesD;
-    vector<double> vTimestamps;
-    string strAssociationFilename = string(argv[4]);
-    LoadImages(strAssociationFilename, vstrImageFilenamesRGB, vstrImageFilenamesD, vTimestamps);
+    vector<string> vstrImageFilenamesRGB1;
+    vector<string> vstrImageFilenamesD1;
+    vector<double> vTimestamps1;
+    string strAssociationFilename1 = string(argv[4]);
+    LoadImages(strAssociationFilename1, vstrImageFilenamesRGB1, vstrImageFilenamesD1, vTimestamps1);
+    
+    vector<string> vstrImageFilenamesRGB2;
+    vector<string> vstrImageFilenamesD2;
+    vector<double> vTimestamps2;
+    string strAssociationFilename2 = string(argv[7]);
+    LoadImages(strAssociationFilename2, vstrImageFilenamesRGB2, vstrImageFilenamesD2, vTimestamps2);
 
     // Check consistency in the number of images and depthmaps
-    int nImages = vstrImageFilenamesRGB.size();
-    if(vstrImageFilenamesRGB.empty())
+    int nImages = vstrImageFilenamesRGB1.size() < vstrImageFilenamesRGB2.size() ? vstrImageFilenamesRGB1.size(): vstrImageFilenamesRGB2.size(); // Select minimum
+    if(vstrImageFilenamesRGB1.empty())
     {
         cerr << endl << "No images found in provided path." << endl;
         return 1;
     }
-    else if(vstrImageFilenamesD.size()!=vstrImageFilenamesRGB.size())
+    else if(vstrImageFilenamesD1.size()!=vstrImageFilenamesRGB1.size())
     {
         cerr << endl << "Different number of images for rgb and depth." << endl;
         return 1;
     }
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(argv[1],argv[2],ORB_SLAM2::System::RGBD, "SLAM1", true);
+    std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::RGBD, string("SLAM1"), true));
+	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[5], ORB_SLAM2::System::RGBD, string("SLAM2"), true));
+
+    
+    std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[8], argv[1]));
+
+    server->RegisterClient(SLAM1.get());
+    // server->RegisterClient(SLAM2.get());
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -74,30 +87,34 @@ int main(int argc, char **argv)
     cout << "Images in the sequence: " << nImages << endl << endl;
 
     // Main loop
-    cv::Mat imRGB, imD;
-    for(int ni=200; ni<nImages; ni++)
+    cv::Mat imRGB1, imD1, imRGB2, imD2;
+    for(int ni=50; ni<nImages; ni++) // 100 frames to skip the start part (for synchronizing)
     {
-        // Read image and depthmap from file
-        imRGB = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB[ni],CV_LOAD_IMAGE_UNCHANGED);
-        imD = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD[ni],CV_LOAD_IMAGE_UNCHANGED);
-        double tframe = vTimestamps[ni];
+        // Read image and depthmap from file for SLAM1
+        imRGB1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB1[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imD1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesD1[ni],CV_LOAD_IMAGE_UNCHANGED);
+        //  Read image and depthmap from file for SLAM2
+        imRGB2 = cv::imread(string(argv[6])+"/"+vstrImageFilenamesRGB2[ni],CV_LOAD_IMAGE_UNCHANGED);
+        imD2 = cv::imread(string(argv[6])+"/"+vstrImageFilenamesD2[ni],CV_LOAD_IMAGE_UNCHANGED);
+        double tframe1 = vTimestamps1[ni], tframe2 = vTimestamps2[ni];
 
-        if(imRGB.empty())
+        if(imRGB1.empty())
         {
             cerr << endl << "Failed to load color image at: "
-                 << string(argv[3]) << "/" << vstrImageFilenamesRGB[ni] << endl;
+                 << string(argv[3]) << "/" << vstrImageFilenamesRGB1[ni] << endl;
             return 1;
         }
-        if(imD.empty()) {
+        if(imD1.empty()) {
             cerr << endl << "Failed to load depth image at: " 
-            << string(argv[3]) << "/" << vstrImageFilenamesD[ni] << endl;
+            << string(argv[3]) << "/" << vstrImageFilenamesD1[ni] << endl;
             return 1;
         }
 
         std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
 
         // Pass the image to the SLAM system
-        SLAM.TrackRGBD(imRGB,imD,tframe);
+        SLAM1->TrackRGBD(imRGB1,imD1,tframe1);
+        SLAM2->TrackRGBD(imRGB2,imD2,tframe2);
 
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
 
@@ -106,18 +123,29 @@ int main(int argc, char **argv)
         vTimesTrack[ni]=ttrack;
 
         // Wait to load the next frame
-        double T=0;
+        double T1=0, T2=0;
         if(ni<nImages-1)
-            T = vTimestamps[ni+1]-tframe;
+        {
+            T1 = vTimestamps1[ni+1]-tframe1;
+            T2 = vTimestamps2[ni+1]-tframe2;
+        }
         else if(ni>0)
-            T = tframe-vTimestamps[ni-1];
+        {
+            T1 = tframe1-vTimestamps1[ni-1];
+            T2 = tframe2-vTimestamps2[ni-1];
+        }
 
-        // if(ttrack<T)
-            // usleep((T-ttrack)*1e6);
+        if(ttrack<T1 || ttrack<T2)
+        {
+            double T = T1 > T2 ? T1 : T2;
+            usleep((T-ttrack)*1e6);
+        }
     }
 
     // Stop all threads
-    SLAM.Shutdown();
+    server->Shutdown();
+    SLAM1->Shutdown();
+    SLAM2->Shutdown();
 
     // Tracking time statistics
     sort(vTimesTrack.begin(),vTimesTrack.end());
@@ -130,9 +158,9 @@ int main(int argc, char **argv)
     cout << "median tracking time: " << vTimesTrack[nImages/2] << endl;
     cout << "mean tracking time: " << totaltime/nImages << endl;
 
-    // Save camera trajectory
-    SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   
+    // // Save camera trajectory
+    // SLAM.SaveTrajectoryTUM("CameraTrajectory.txt");
+    // SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");   
 
     return 0;
 }
