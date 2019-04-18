@@ -68,6 +68,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    std::cout << "Creating system" << std::endl;
+
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
     std::shared_ptr<ORB_SLAM2::System> SLAM1(new ORB_SLAM2::System(argv[1],argv[2],ORB_SLAM2::System::RGBD, string("SLAM1"), true));
 	std::shared_ptr<ORB_SLAM2::System> SLAM2(new ORB_SLAM2::System(argv[1],argv[5], ORB_SLAM2::System::RGBD, string("SLAM2"), true));
@@ -88,7 +90,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imRGB1, imD1, imRGB2, imD2;
-    for(int ni=80; ni<nImages; ni++) // 100 frames to skip the start part (for synchronizing)
+    for(int ni=1010; ni<1200; ni++) // 100 frames to skip the start part (for synchronizing)
     {
         // Read image and depthmap from file for SLAM1
         imRGB1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB1[ni],CV_LOAD_IMAGE_UNCHANGED);

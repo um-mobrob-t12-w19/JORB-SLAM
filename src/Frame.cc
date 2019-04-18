@@ -277,60 +277,63 @@ void Frame::DetectAprilTags(const cv::Mat& imGray) {
 
 
    
-        // cap >> frame;
-        // cvtColor(frame, imGray, COLOR_BGR2GRAY);
+    // cap >> frame;
+    // cvtColor(frame, imGray, COLOR_BGR2GRAY);
 
-        // Make an image_u8_t header for the Mat data
-        image_u8_t im = { .width = imGray.cols,
-            .height = imGray.rows,
-            .stride = imGray.cols,
-            .buf = imGray.data
-        };
+    // Make an image_u8_t header for the Mat data
+    image_u8_t im = { .width = imGray.cols,
+        .height = imGray.rows,
+        .stride = imGray.cols,
+        .buf = imGray.data
+    };
 
-        zarray_t *detections = apriltag_detector_detect(td, &im);
-        if(zarray_size(detections)!=0)
-          {detectedAprilTag = true;
-          }
-        // Draw detection outlines
-        for (int i = 0; i < zarray_size(detections); i++) {
-            apriltag_detection_t *det;
-            zarray_get(detections, i, &det);            
-            mK;
+    zarray_t *detections = apriltag_detector_detect(td, &im);
+    if(zarray_size(detections)!=0) {
+        detectedAprilTag = true;
+        std::cout << "Detected!" << std::endl;
 
-            apriltag_detection_info_t info;
-            info.det = det;
-            info.tagsize = 0.173;
-            info.fx = fx;
-            info.fy = fy;
-            info.cx = cx;
-            info.cy = cy;
+        int i = 0;
+        apriltag_detection_t *det;
+        zarray_get(detections, i, &det);            
+        mK;
 
-            apriltag_pose_t pose;
-            double err = estimate_tag_pose(&info, &pose);
-            // cv::Mat pose_aug;
-            // hconcat(pose_aug,pose.R,pose.t)
+        apriltag_detection_info_t info;
+        info.det = det;
+        info.tagsize = 0.173;
+        info.fx = fx;
+        info.fy = fy;
+        info.cx = cx;
+        info.cy = cy;
 
-            Mat rot = Mat(3, 3, CV_32FC1, &(pose.R->data));
-            Mat tran = Mat(3, 1, CV_32FC1, &(pose.t->data));
-            Mat pose_f;
-            hconcat(pose_f,rot,tran);
-            Mat bottom = (Mat_<double>(1,3) << 0, 0, 0, 1);
-            vconcat(pose_f,pose_f,bottom);
-            aprilTagRelativePose = pose_f.clone();
-            
-            // double rot. = pose.R
-            // matd_print(pose.R,"%f ");
-        
+        apriltag_pose_t pose;
+        double err = estimate_tag_pose(&info, &pose);
+        matd_print((pose.R), "%f");
+
+        Mat rot = Mat(3, 3, CV_64FC1, &(pose.R->data));
+        Mat tran = Mat(3, 1, CV_64FC1, &(pose.t->data));
+        aprilTagRelativePose = Mat(4, 4, CV_64FC1);
+        aprilTagRelativePose.at<double>(0, 0) = rot.at<double>(0, 0);
+        aprilTagRelativePose.at<double>(0, 1) = rot.at<double>(0, 1);
+        aprilTagRelativePose.at<double>(0, 2) = rot.at<double>(0, 2);
+        aprilTagRelativePose.at<double>(1, 0) = rot.at<double>(1, 0);
+        aprilTagRelativePose.at<double>(1, 1) = rot.at<double>(1, 1);
+        aprilTagRelativePose.at<double>(1, 2) = rot.at<double>(1, 2);
+        aprilTagRelativePose.at<double>(2, 0) = rot.at<double>(2, 0);
+        aprilTagRelativePose.at<double>(2, 1) = rot.at<double>(2, 1);
+        aprilTagRelativePose.at<double>(2, 2) = rot.at<double>(2, 2);
+
+        aprilTagRelativePose.at<double>(0, 3) = rot.at<double>(0, 0);
+        aprilTagRelativePose.at<double>(1, 3) = rot.at<double>(1, 0);
+        aprilTagRelativePose.at<double>(2, 3) = rot.at<double>(2, 0);
+
+        aprilTagRelativePose.at<double>(3, 0) = 0;
+        aprilTagRelativePose.at<double>(3, 1) = 0;
+        aprilTagRelativePose.at<double>(3, 2) = 0;
+        aprilTagRelativePose.at<double>(3, 3) = 1;
 
         zarray_destroy(detections);
+        std::cout << "Finished dection" << std::endl;
     }
-
-    
-
-    // apriltag_detector_destroy(td);
-
-
-    // getopt_destroy(getopt);
 }
 
 

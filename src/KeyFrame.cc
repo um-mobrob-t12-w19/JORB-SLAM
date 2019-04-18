@@ -42,7 +42,7 @@ KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB):
     mnMaxY(F.mnMaxY), mK(F.mK), mvpMapPoints(F.mvpMapPoints), mpKeyFrameDB(pKFDB),
     mpORBvocabulary(F.mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mbNotErase(false),
     mbToBeErased(false), mbBad(false), mHalfBaseline(F.mb/2), mpMap(pMap), 
-    detectedAprilTag(F.detectedAprilTag), aprilTagRelativePose(F.aprilTagRelativePose.clone())
+    detectedAprilTag(F.detectedAprilTag), aprilTagRelativePose(F.aprilTagRelativePose.clone()), aprilTagKeyFrame(nullptr)
 {
     mnId=nNextId++;
 
@@ -71,7 +71,7 @@ KeyFrame::KeyFrame(KeyFrame* F, Map* pMap, KeyFrameDatabase* pKFDB) :
     mnMaxY(F->mnMaxY), mK(F->mK), mpKeyFrameDB(pKFDB),
     mpORBvocabulary(F->mpORBvocabulary), mbFirstConnection(true), mpParent(NULL), mbNotErase(false),
     mbToBeErased(false), mbBad(false), mHalfBaseline(F->mHalfBaseline), mpMap(pMap), 
-    detectedAprilTag(F->detectedAprilTag), aprilTagRelativePose(F->aprilTagRelativePose.clone())
+    detectedAprilTag(F->detectedAprilTag), aprilTagRelativePose(F->aprilTagRelativePose.clone()), aprilTagKeyFrame(nullptr)
 {
     mnId=nNextId++;
 
