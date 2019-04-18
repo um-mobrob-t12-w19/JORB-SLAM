@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     std::shared_ptr<ORB_SLAM2::Server> server(new ORB_SLAM2::Server(argv[8], argv[1]));
 
     server->RegisterClient(SLAM1.get());
-    // server->RegisterClient(SLAM2.get());
+    server->RegisterClient(SLAM2.get());
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -88,7 +88,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat imRGB1, imD1, imRGB2, imD2;
-    for(int ni=50; ni<nImages; ni++) // 100 frames to skip the start part (for synchronizing)
+    for(int ni=80; ni<nImages; ni++) // 100 frames to skip the start part (for synchronizing)
     {
         // Read image and depthmap from file for SLAM1
         imRGB1 = cv::imread(string(argv[3])+"/"+vstrImageFilenamesRGB1[ni],CV_LOAD_IMAGE_UNCHANGED);
@@ -138,9 +138,27 @@ int main(int argc, char **argv)
         if(ttrack<T1 || ttrack<T2)
         {
             double T = T1 > T2 ? T1 : T2;
-            usleep((T-ttrack)*1e6);
+            usleep((T-ttrack)*1e6 * 2); // Give more time for two threads
         }
     }
+
+    // Wait for the clients to finish processing
+    std::cout << "Finished running clients. Press enter to run server" << std::endl;
+    std::cin.ignore();
+
+
+    // Disable local mapping and loop closing threads. Keeps viewer alive
+    SLAM1->ActivateLocalizationMode();
+    SLAM2->ActivateLocalizationMode();
+
+    std::cout << "Syncing maps..." << std::endl;
+
+    server->Run();    
+
+    std::cout << "Finished syncing maps." << std::endl;
+
+    std::cout << "Press enter to continue" << std::endl;
+    std::cin.ignore();
 
     // Stop all threads
     server->Shutdown();

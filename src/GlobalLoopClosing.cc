@@ -116,7 +116,7 @@ bool GlobalLoopClosing::DetectLoop()
     for(size_t i=0; i<vpConnectedKeyFrames.size(); i++)
     {
         KeyFrame* pKF = vpConnectedKeyFrames[i];
-        if(pKF->isBad())
+        if(!pKF || pKF->isBad())
             continue;
         const DBoW2::BowVector &BowVec = pKF->mBowVec;
 
