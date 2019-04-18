@@ -1,0 +1,10 @@
+find_path(APRILTAGS_INCLUDE_DIRS NAMES apriltag apriltag.h
+    PATHS ${SOFTWARE_SOURCE_DIR}/thirdparty/apriltags/include)
+
+find_library(APRILTAGS_LIBRARIES NAMES libapriltag apriltag
+    PATHS ${SOFTWARE_SOURCE_DIR}/thirdparty/apriltags/lib)
+
+set(APRILTAGS_LIBRARIES ${APRILTAGS_LIBRARIES} CACHE STRING "")
+set(APRILTAGS_INCLUDE_DIRS ${APRILTAGS_INCLUDE_DIRS} CACHE STRING "")
+
+mark_as_advanced(APRILTAGS_INCLUDE_DIRS APRILTAGS_LIBRARIES)

@@ -43,12 +43,14 @@ find_package(Boost  1.54.0  	     # Minimum or EXACT version e.g. 1.36.0
   REQUIRED             					# Fail with error if Boost is not found
   COMPONENTS serialization 				# Boost libraries by their canonical name
   )          
+find_package(AprilTags REQUIRED)
 
 include_directories(SYSTEM
 ${PROJECT_SOURCE_DIR}
 ${EIGEN3_INCLUDE_DIR}
 ${Pangolin_INCLUDE_DIRS}
 ${YAMLCPP_INCLUDE_DIR}
+${APRILTAGS_INCLUDE_DIRS}
 )
 
 include_directories(
@@ -89,6 +91,7 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/DBoW2/lib/libDBoW2.so
 ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 ${Boost_LIBRARIES}
 ${YAMLCPP_LIBRARY}
+${APRILTAGS_LIBRARIES}
 )
 
 # Build examples
