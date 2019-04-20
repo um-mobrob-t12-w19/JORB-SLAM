@@ -29,7 +29,7 @@
 namespace ORB_SLAM2
 {
 
-FrameDrawer::FrameDrawer(Map* pMap):mpMap(pMap)
+FrameDrawer::FrameDrawer(Map* pMap):mpMap(pMap), aprilTagDetected(false)
 {
     mState=Tracking::SYSTEM_NOT_READY;
     mIm = cv::Mat(480,640,CV_8UC3, cv::Scalar(0,0,0));
@@ -117,6 +117,14 @@ cv::Mat FrameDrawer::DrawFrame()
                 }
             }
         }
+
+        // Draw april tags outline
+        if(aprilTagDetected) {
+            cv::line(im, outline[0], outline[1],cv::Scalar(150,170,255), 2);
+            cv::line(im, outline[1], outline[2],cv::Scalar(150,170,255), 2);
+            cv::line(im, outline[2], outline[3],cv::Scalar(150,170,255), 2);
+            cv::line(im, outline[3], outline[0],cv::Scalar(150,170,255), 2);
+        }
     }
 
     cv::Mat imWithInfo;
@@ -173,7 +181,7 @@ void FrameDrawer::Update(Tracking *pTracker)
     mvbVO = vector<bool>(N,false);
     mvbMap = vector<bool>(N,false);
     mbOnlyTracking = pTracker->mbOnlyTracking;
-
+    aprilTagDetected = false;
 
     if(pTracker->mLastProcessedState==Tracking::NOT_INITIALIZED)
     {
@@ -182,6 +190,11 @@ void FrameDrawer::Update(Tracking *pTracker)
     }
     else //if(pTracker->mLastProcessedState==Tracking::OK)
     {
+        if(pTracker->mCurrentFrame.detectedAprilTag) {
+            aprilTagDetected = pTracker->mCurrentFrame.detectedAprilTag;
+            outline = pTracker->mCurrentFrame.outline;
+        }
+
         for(int i=0;i<N;i++)
         {
             MapPoint* pMP = pTracker->mCurrentFrame.mvpMapPoints[i];

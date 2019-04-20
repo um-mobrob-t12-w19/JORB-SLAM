@@ -263,19 +263,13 @@ void Frame::DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth) 
     apriltag_detector_t *td = apriltag_detector_create();
     apriltag_detector_add_family(td, tf);
 
-
     // Set these
     td->quad_decimate = 2.0;
     td->quad_sigma = 0.0;
     td->nthreads = 1;
     td->debug = 0;
     td->refine_edges = 1;
-
-
    
-    // cap >> frame;
-    // cvtColor(frame, imGray, COLOR_BGR2GRAY);
-
     // Make an image_u8_t header for the Mat data
     image_u8_t im = { .width = imGray.cols,
         .height = imGray.rows,
@@ -290,7 +284,6 @@ void Frame::DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth) 
         int i = 0;
         apriltag_detection_t *det;
         zarray_get(detections, i, &det);            
-        mK;
 
         apriltag_detection_info_t info;
         info.det = det;
@@ -301,8 +294,10 @@ void Frame::DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth) 
         info.cy = cy;
 
         apriltag_pose_t pose;
+
         double err = estimate_tag_pose(&info, &pose);
 
+        // Set pose
         Mat rot = Mat(3, 3, CV_64FC1, &(pose.R->data));
         Mat tran = Mat(3, 1, CV_64FC1, &(pose.t->data));
         aprilTagRelativePose = Mat(4, 4, CV_64FC1);
@@ -324,6 +319,13 @@ void Frame::DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth) 
         aprilTagRelativePose.at<double>(3, 1) = 0;
         aprilTagRelativePose.at<double>(3, 2) = 0;
         aprilTagRelativePose.at<double>(3, 3) = 1;
+
+        // Set outline
+        size_t num_points = 4;
+        outline.reserve(num_points);
+        for(size_t i = 0; i < num_points; i++) {
+            outline.emplace_back(det->p[i][0], det->p[i][1]);
+        }
 
         zarray_destroy(detections);
     }

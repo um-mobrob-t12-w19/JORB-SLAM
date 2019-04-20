@@ -209,6 +209,7 @@ public:
 
     bool detectedAprilTag;
     cv::Mat aprilTagRelativePose;
+    std::vector<cv::Point2d> outline;
 
     // static apriltag_family_t *tf;
     // static apriltag_detector_t *td;

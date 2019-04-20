@@ -62,6 +62,8 @@ protected:
     vector<cv::KeyPoint> mvIniKeys;
     vector<int> mvIniMatches;
     int mState;
+    std::vector<cv::Point2d> outline;
+    bool aprilTagDetected;
 
     Map* mpMap;
 
