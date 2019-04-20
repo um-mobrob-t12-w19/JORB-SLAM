@@ -81,7 +81,7 @@ public:
 
     bool CheckNewKeyFrames();
 
-protected:
+public:
 
     bool DetectLoop();
 

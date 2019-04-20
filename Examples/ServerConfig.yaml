@@ -55,11 +55,11 @@ ORBextractor.minThFAST: 7
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters
 #--------------------------------------------------------------------------------------------
-Viewer.KeyFrameSize: 0.05
-Viewer.KeyFrameLineWidth: 1
-Viewer.GraphLineWidth: 0.9
+Viewer.KeyFrameSize: 0.1
+Viewer.KeyFrameLineWidth: 2
+Viewer.GraphLineWidth: 1
 Viewer.PointSize: 2
-Viewer.CameraSize: 0.08
+Viewer.CameraSize: 0.15
 Viewer.CameraLineWidth: 3
 Viewer.ViewpointX: 0
 Viewer.ViewpointY: -0.7

@@ -540,6 +540,8 @@ void GlobalLoopClosing::CorrectLoop()
         }
     }
 
+
+
     // Optimize graph
     Optimizer::OptimizeEssentialGraph(mpMap, mpMatchedKF, mpCurrentKF, NonCorrectedSim3, CorrectedSim3, LoopConnections, mbFixScale);
     mpMap->InformNewBigChange();
@@ -548,6 +550,11 @@ void GlobalLoopClosing::CorrectLoop()
     mpMatchedKF->AddLoopEdge(mpCurrentKF);
     mpCurrentKF->AddLoopEdge(mpMatchedKF);
 
+    // Launch a new thread to perform Global Bundle Adjustment
+    mbRunningGBA = true;
+    mbFinishedGBA = false;
+    mbStopGBA = false;
+    mpThreadGBA = new thread(&GlobalLoopClosing::RunGlobalBundleAdjustment,this,mpCurrentKF->mnId);
 
     mLastLoopKFid = mpCurrentKF->mnId;   
 }

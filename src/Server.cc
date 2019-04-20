@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <limits>
 
 #include "Server.h"
 #include "ORBmatcher.h"
@@ -66,7 +67,6 @@ void Server::Run() {
     globalLoopClosing = new GlobalLoopClosing(globalMap, globalDatabase, vocabulary, !monocular);
 
     // // Start global mapping and viewer
-    globalMappingThread = new std::thread(&GlobalLoopClosing::Run, globalLoopClosing);
     viewerThread = new std::thread(&Viewer::Run, viewer);
 
     std::vector<KeyFrame*> keyframesSeqA = clients[0]->mpMap->GetAllKeyFrames();
@@ -75,46 +75,54 @@ void Server::Run() {
     std::vector<MapPoint*> mappointsSeqA = clients[0]->mpMap->GetAllMapPoints();
     std::vector<MapPoint*> mappointsSeqB = clients[1]->mpMap->GetAllMapPoints();
 
+    std::cout << "Ready to insert items..." << std::endl;
+    cin.ignore();
 
     // while(!stopped) {
     for(KeyFrame* keyframe : keyframesSeqA) {
         InsertNewKeyFrame(keyframe, 0, SEQA);
+        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqA) {
         CopyKeyFrameMappoints(keyframe);
+        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqA) {
         CopyKeyFrameConnections(keyframe);
+        std::this_thread::sleep_for(25ms);
     }
 
     int offset = globalMap->GetAllKeyFrames().size();
     for(KeyFrame* keyframe : keyframesSeqB) {
         InsertNewKeyFrame(keyframe, offset, SEQB);
+        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqB) {
         CopyKeyFrameMappoints(keyframe);
+        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqB) {
         CopyKeyFrameConnections(keyframe);
+        std::this_thread::sleep_for(25ms);
     }
 
+    std::cout << "adding april tag connections" << std::endl;
+
     FindAprilTagConnections();
+
+    std::cout << "Finished inserting items. Press enter to optimize..." << std::endl;
+    cin.ignore();
+
+    globalMappingThread = new std::thread(&GlobalLoopClosing::Run, globalLoopClosing);
     
     for(KeyFrame* keyframe : globalMap->GetAllKeyFrames()) {
         globalLoopClosing->InsertKeyFrame(keyframe);
         std::this_thread::sleep_for(50ms);
     }
-
-    // // Launch a new thread to perform Global Bundle Adjustment
-    // globalLoopClosing->mbRunningGBA = true;
-    // globalLoopClosing->mbFinishedGBA = false;
-    // globalLoopClosing->mbStopGBA = false;
-    // new thread(&GlobalLoopClosing::RunGlobalBundleAdjustment,this,mpCurrentKF->mnId);
-
 }
 
 void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence) {
@@ -207,14 +215,47 @@ void Server::FindAprilTagConnections() {
     for(KeyFrame* keyframe : globalMap->GetAllKeyFrames()) {
         if(keyframe->detectedAprilTag) {
             double timestamp = keyframe->mTimeStamp;
-            std::map<double, KeyFrame*>::iterator it;
+            std::map<double, KeyFrame*>::iterator closest_it;
+            double closestDiff = std::numeric_limits<double>::infinity();;
+            std::map<double, KeyFrame*>::iterator lower_it;
+            double lowerTimeDiff = std::numeric_limits<double>::infinity();
+            std::map<double, KeyFrame*>::iterator upper_it;
+            double upperTimeDiff = std::numeric_limits<double>::infinity();;
+            std::map<double, KeyFrame*>::iterator end_it;
+
+            // Get the upper and lower bounds of the timestamp from the other sequence
             if(keyframe->sequence == SEQA) {
-                it = timeDictionaryB.lower_bound(timestamp);
+                lower_it = timeDictionaryB.lower_bound(timestamp);
+                upper_it = timeDictionaryB.upper_bound(timestamp);
+                end_it = timeDictionaryB.end();
             } else {
-                it = timeDictionaryA.lower_bound(timestamp);
+                lower_it = timeDictionaryA.lower_bound(timestamp);
+                upper_it = timeDictionaryA.upper_bound(timestamp);
+                end_it = timeDictionaryA.end();
             }
 
-            keyframe->aprilTagKeyFrame = it->second;
+            // Get the absolute time difference for both bounds
+            if(lower_it != end_it) {
+                lowerTimeDiff = std::abs(lower_it->second->mTimeStamp - timestamp);
+            }
+            if(upper_it != end_it) {
+                upperTimeDiff = std::abs(upper_it->second->mTimeStamp - timestamp);
+            }
+
+            // Set closest keyframe to the lowerest difference
+           if(lowerTimeDiff <= upperTimeDiff) {
+                closest_it = lower_it;
+                closestDiff = lowerTimeDiff;
+            } else if(upperTimeDiff < lowerTimeDiff) {
+                closest_it = upper_it;
+                closestDiff = upperTimeDiff;
+            }
+
+            // Keyframes must be close in time
+            if(closestDiff < 0.1 && closest_it != end_it) {
+                // Set keyframe to the closest keyframe in time
+                keyframe->aprilTagKeyFrame = closest_it->second;
+            }
         }
     }
 }

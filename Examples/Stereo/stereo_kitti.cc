@@ -81,6 +81,7 @@ int main(int argc, char **argv)
     cout << endl << "-------" << endl;
     cout << "Start processing sequence ..." << endl;
     cout << "Images in the sequence: " << nImages << endl << endl;   
+    std::cin.ignore();
 
     // Main loop
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
