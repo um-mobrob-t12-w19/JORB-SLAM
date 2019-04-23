@@ -17,15 +17,15 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
 make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 
-cd ../../Pangolin/
+# cd ../../Pangolin/
 
-echo "Configuring and building Thirdparty/Pangolin ..."
+# echo "Configuring and building Thirdparty/Pangolin ..."
 
-mkdir build
-cd build
-cmake .. -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF
-num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
-make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
+# mkdir build
+# cd build
+# cmake .. -DBUILD_TOOLS=OFF -DBUILD_EXAMPLES=OFF
+# num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
+# make -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 
 cd ../../../
 

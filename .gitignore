@@ -26,6 +26,7 @@ build/
 lib/
 .vscode/
 .vs/
-datasets
+datasets/kitti_odometry_00
+datasets/
 CameraTrajectory.txt
 

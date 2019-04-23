@@ -32,13 +32,11 @@
 #include <Server.h>
 using namespace std;
 
-constexpr size_t seq_len = 4540;
+constexpr size_t seq_len = 150;
 constexpr size_t seq_A_start = 0;
-// constexpr size_t seq_A_end = 100;
-constexpr size_t seq_A_end = 2400;
-// constexpr size_t seq_B_start = 4440;
-constexpr size_t seq_B_start = 2270;
-constexpr size_t seq_B_end = 4540;
+constexpr size_t seq_A_end = 100;
+constexpr size_t seq_B_start = 50;
+constexpr size_t seq_B_end = 150;
 
 
 void LoadImages(const string &strPathToSequence, 
@@ -80,7 +78,8 @@ int main(int argc, char **argv)
 
     cout << endl << "-------" << endl;
     cout << "Start processing sequence ..." << endl;
-    cout << "Images in the sequence: " << nImages << endl << endl;   
+    cout << "Images in the sequence: " << nImages << endl;   
+    cout << "[Press Enter to continue]: "<< endl << endl;   
     std::cin.ignore();
 
     // Main loop
@@ -159,7 +158,7 @@ int main(int argc, char **argv)
     }
 
     // Wait for the clients to finish processing
-    std::cout << "Finished running clients. Press enter to run server" << std::endl;
+    std::cout << "Finished running clients. [Press enter to run server]" << std::endl;
     std::cin.ignore();
 
 
@@ -173,7 +172,7 @@ int main(int argc, char **argv)
 
     std::cout << "Finished syncing maps." << std::endl;
 
-    std::cout << "Press enter to continue" << std::endl;
+    std::cout << "[Press enter to shutdown the system]" << std::endl;
     std::cin.ignore();
 
     // Stop all threads

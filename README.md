@@ -42,6 +42,9 @@ This will create **libORB_SLAM2.so**  at *lib* folder and the executables **rgbd
 ./Examples/Stereo/stereo_kitti Vocabulary/ORBvoc.txt Examples/Stereo/KITTIX.yaml PATH_TO_DATASET_FOLDER/dataset/sequences/SEQUENCE_NUMBER
 ```
 
+### Included data sequence
+We included a sample data sequence out of box under folder `datasets`, this sample is cut out from sequence 00 of KITTI odometry dataset. Unzip file `kitti_odometry_00.zip` into `dataset/kitti_odometry_00` and execute `run_kitti.sh`, then you can find the system running on the sample sequence.
+
 ## (RGBD) TUM Dataset
 
 1. Download a sequence from http://vision.in.tum.de/data/datasets/rgbd-dataset/download and uncompress it.
