@@ -622,7 +622,7 @@ void GlobalLoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
     cout << "Starting Global Bundle Adjustment" << endl;
 
     int idx =  mnFullBAIdx;
-    Optimizer::GlobalBundleAdjustemnt(mpMap,10,&mbStopGBA,nLoopKF,false);
+    Optimizer::GlobalBundleAdjustemnt(mpMap,100,&mbStopGBA,nLoopKF,false);
 
     // Update all MapPoints and KeyFrames
     // Local Mapping was active during BA, that means that there might be new keyframes
@@ -636,27 +636,20 @@ void GlobalLoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
         if(!mbStopGBA)
         {
             cout << "Global Bundle Adjustment finished" << endl;
-            cout << "Updating map ..." << endl;
             // Wait until Local Mapping has effectively stopped
 
             // Get Map Mutex
             {
                 unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
 
-                std::cout << "Correcting keyframes" << std::endl;
                 // Correct keyframes starting at map first keyframe
                 list<KeyFrame*> lpKFtoCheck(mpMap->mvpKeyFrameOrigins.begin(),mpMap->mvpKeyFrameOrigins.end());
 
                 while(!lpKFtoCheck.empty())
                 {
-                    std::cout << "Here 1" << std::endl;
                     KeyFrame* pKF = lpKFtoCheck.front();
-                    std::cout << "Here 2" << std::endl;
                     const set<KeyFrame*> sChilds = pKF->GetChilds();
-                    std::cout << "Here 3" << std::endl;
-                    std::cout << pKF->GetPose() << std::endl;
                     cv::Mat Twc = pKF->GetPoseInverse();
-                    std::cout << "Here 4" << std::endl;
                     for(set<KeyFrame*>::const_iterator sit=sChilds.begin();sit!=sChilds.end();sit++)
                     {
                         KeyFrame* pChild = *sit;
@@ -670,80 +663,55 @@ void GlobalLoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
                         lpKFtoCheck.push_back(pChild);
                     }
 
-                    std::cout << "Here 5" << std::endl;
                     pKF->mTcwBefGBA = pKF->GetPose();
-                    std::cout << "Here 6" << std::endl;
                     pKF->SetPose(pKF->mTcwGBA);
-                    std::cout << "Here 7" << std::endl;
                     lpKFtoCheck.pop_front();
-                    std::cout << "Here 8" << std::endl;
                 }
-                std::cout << "Corrected keyframes" << std::endl;
-                cin.ignore();
             }
 
             {
                 unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
                 // Correct MapPoints
-                std::cout << "Correcting map points" << std::endl;
                 const vector<MapPoint*> vpMPs = mpMap->GetAllMapPoints();
 
                 for(size_t i=0; i<vpMPs.size(); i++)
                 {
                     MapPoint* pMP = vpMPs[i];
-                    std::cout << "Here 1" << std::endl;
 
                     if(pMP->isBad())
                         continue;
 
-                    std::cout << "Here 1" << std::endl;
                     if(pMP->mnBAGlobalForKF==nLoopKF)
                     {
                         // If optimized by Global BA, just update
-                        std::cout << "Here 2" << std::endl;
                         pMP->SetWorldPos(pMP->mPosGBA);
-                        std::cout << "Here 3" << std::endl;
                     }
                     else
                     {
                         // Update according to the correction of its reference keyframe
-                        std::cout << "Here 4" << std::endl;
                         KeyFrame* pRefKF = pMP->GetReferenceKeyFrame();
 
-                        std::cout << "Here 5" << std::endl;
                         if(pRefKF->mnBAGlobalForKF!=nLoopKF)
                             continue;
 
                         // Map to non-corrected camera
-                        std::cout << "Here 6" << std::endl;
                         cv::Mat Rcw = pRefKF->mTcwBefGBA.rowRange(0,3).colRange(0,3);
-                        std::cout << "Here 7" << std::endl;
                         cv::Mat tcw = pRefKF->mTcwBefGBA.rowRange(0,3).col(3);
-                        std::cout << "Here 8" << std::endl;
                         cv::Mat Xc = Rcw*pMP->GetWorldPos()+tcw;
 
                         // Backproject using corrected camera
-                        std::cout << "Here 9" << std::endl;
                         cv::Mat Twc = pRefKF->GetPoseInverse();
-                        std::cout << "Here 10" << std::endl;
                         cv::Mat Rwc = Twc.rowRange(0,3).colRange(0,3);
-                        std::cout << "Here 11" << std::endl;
                         cv::Mat twc = Twc.rowRange(0,3).col(3);
 
-                        std::cout << "Here 12" << std::endl;
                         pMP->SetWorldPos(Rwc*Xc+twc);
                     }
                 }
-                std::cout << "Corrected map points" << std::endl;
-                cin.ignore();
             }
 
             {
-                std::cout << "Updating map" << std::endl;
                 unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
                 mpMap->InformNewBigChange();
-                std::cout << "Map Updated" << std::endl;
-                cin.ignore();
             }
 
 

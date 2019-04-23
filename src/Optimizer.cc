@@ -67,10 +67,9 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
     long unsigned int maxKFid = 0;
 
-    float AprilSigma = 2;
-    float invAprilSigma = 1/ AprilSigma;
+    constexpr float AprilSigma = 0.001;
+    constexpr float invAprilSigma = 1/ AprilSigma;
 
-    std::cout << "Adding keyframe vertices" << std::endl;
     // Set KeyFrame vertices
     for(size_t i=0; i<vpKFs.size(); i++)
     {
@@ -85,36 +84,24 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         if(pKF->mnId>maxKFid)
             maxKFid=pKF->mnId;
     }
-    std::cout << "Added keyframe vertices" << std::endl;
 
-    std::cout << "Adding April tag edges" << std::endl;
+    // Add April Tag Edges
     for(KeyFrame* pKF : vpKFs) {
         if(pKF->detectedAprilTag) {
-            std::cout << "Detected April tag!" << std::endl;
             if(pKF->aprilTagKeyFrame) {
-                std::cout << "Has keyframe!" << std::endl;
                 g2o::EdgeAprilTag* edge = new g2o::EdgeAprilTag();
-                std::cout << "Here1" << std::endl;
                 edge->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->mnId)));
-                std::cout << "Here2" << std::endl;
                 edge->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->aprilTagKeyFrame->mnId)));
-                std::cout << "Here3" << std::endl;
                 edge->setMeasurement(Converter::toSE3Quat(pKF->aprilTagRelativePose));
                 std::cout << pKF->aprilTagRelativePose << std::endl;
-                std::cout << "Here4" << std::endl;
                 edge->setInformation(Eigen::Matrix<double, 6, 6>::Identity() * invAprilSigma);
-                std::cout << "Here5" << std::endl;
                 optimizer.addEdge(edge);
-                std::cout << "Here6" << std::endl;
             }
         }
     }
-    std::cout << "Added April tag edges" << std::endl;
-
     const float thHuber2D = sqrt(5.99);
     const float thHuber3D = sqrt(7.815);
 
-    std::cout << "Adding Map Point vertices" << std::endl;
     // Set MapPoint vertices
     for(size_t i=0; i<vpMP.size(); i++)
     {
@@ -212,16 +199,12 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             vbNotIncludedMP[i]=false;
         }
     }
-    std::cout << "Added Map Point vertices" << std::endl;
 
     // Optimize!
-    std::cout << "Optimizing!" << std::endl;
     optimizer.initializeOptimization();
     optimizer.optimize(nIterations);
-    std::cout << "Optimized!" << std::endl;
 
 
-    std::cout << "Updating Keyframes!" << std::endl;
     //Keyframes
     for(size_t i=0; i<vpKFs.size(); i++)
     {
@@ -230,7 +213,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             continue;
         g2o::VertexSE3Expmap* vSE3 = static_cast<g2o::VertexSE3Expmap*>(optimizer.vertex(pKF->mnId));
         g2o::SE3Quat SE3quat = vSE3->estimate();
-        if(nLoopKF==0)
+        if(nLoopKF==0 || nLoopKF == -1)
         {
             pKF->SetPose(Converter::toCvMat(SE3quat));
         }
@@ -269,9 +252,6 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         }
     }
     std::cout << "Updated Map Points!" << std::endl;
-
-    std::cin.ignore();
-
 }
 
 int Optimizer::PoseOptimization(Frame *pFrame)

@@ -28,7 +28,6 @@
 #define G2O_SE3QUAT_H_
 
 #include "se3_ops.h"
-#include "jacobians.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -36,7 +35,9 @@
 namespace g2o {
   using namespace Eigen;
 
-  typedef Matrix<double, 7, 1> Vector7d;
+typedef Matrix<double, 7, 1> Vector7d;
+typedef  Eigen::Matrix<double, 6, 1> Vector6d;
+typedef  Eigen::Matrix<double, 6, 6> Matrix6d;
 
   class SE3Quat {
     public:

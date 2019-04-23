@@ -25,6 +25,7 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "types_six_dof_expmap.h"
+#include "jacobians.hpp"
 
 #include "../core/factory.h"
 #include "../stuff/macros.h"
@@ -382,17 +383,25 @@ void EdgeAprilTag::computeError()  {
   SE3Quat X_B_G = v2->estimate();
   SE3Quat X_A_B = _measurement;
   _error = (X_A_G.inverse() * X_B_G * X_A_B).log();
+  if(_error.hasNaN()) {
+    _error = Vector6d::Zero();
+  }
+  std::cout << "Computed Error: " << _error.norm() << std::endl;
 }
 
-void EdgeAprilTag::linearizeOplus() {
-  const VertexSE3Expmap* v1 = static_cast<const VertexSE3Expmap*>(_vertices[0]);
-  const VertexSE3Expmap* v2 = static_cast<const VertexSE3Expmap*>(_vertices[1]);
-  SE3Quat X_A_G = v1->estimate();
-  SE3Quat X_B_G = v2->estimate();
+// void EdgeAprilTag::linearizeOplus() {
+//   const VertexSE3Expmap* v1 = static_cast<const VertexSE3Expmap*>(_vertices[0]);
+//   const VertexSE3Expmap* v2 = static_cast<const VertexSE3Expmap*>(_vertices[1]);
+//   SE3Quat X_A_G = v1->estimate();
+//   SE3Quat X_B_G = v2->estimate();
+//   SE3Quat X_A_B = _measurement;
+//   Vector6d residual = (X_A_G.inverse() * X_B_G * X_A_B).log();
 
-  _jacobianOplusXi =
-
-}
+//   _jacobianOplusXi = -JacobianLeftInvSE3(residual);
+//   if(_jacobianOplusXi.hasNaN()) _jacobianOplusXi = Matrix6d::Zero();
+//   _jacobianOplusXi = JacobianRightInvSE3(residual) * X_A_B.adj();
+//   if(_jacobianOplusXi.hasNaN()) _jacobianOplusXi = Matrix6d::Zero();
+// }
 
 
 

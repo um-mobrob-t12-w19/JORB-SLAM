@@ -298,22 +298,48 @@ void Frame::DetectAprilTagsDepth(const cv::Mat& imGray, const cv::Mat& imDepth) 
         double err = estimate_tag_pose(&info, &pose);
 
         // Set pose
+        Mat rotFix =  Mat::zeros(3, 3, CV_64FC1);
+        rotFix.at<double>(0, 0) = 1;
+        rotFix.at<double>(1, 1) = -1;
+        rotFix.at<double>(2, 2) = -1;
+
         Mat rot = Mat(3, 3, CV_64FC1, &(pose.R->data));
+        Eigen::Matrix3d Rot = Converter::toMatrix3d(rot);
+        Eigen::AngleAxis<double> RotDecomp(Rot);
+        Eigen::Vector3d axis = RotDecomp.axis() * RotDecomp.angle();
+        Mat pos = Mat(3, 1, CV_64FC1, &(pose.t->data));
+
+        double x = axis.x();
+        double y = axis.y();
+        double z = axis.z();
+
+        Eigen::Matrix3d correctedRot = (Eigen::AngleAxisd(-x, Eigen::Vector3d::UnitX()) *
+                                                                        Eigen::AngleAxisd(y, Eigen::Vector3d::UnitY()) *
+                                                                        Eigen::AngleAxisd(-z, Eigen::Vector3d::UnitZ())).toRotationMatrix().transpose();
+
+        Eigen::Vector3d Pos = Converter::toVector3d(pos);
+        Eigen::Vector3d correctedPos = Pos;
+        correctedPos.x() = -Pos.x();
+        correctedPos.y() = Pos.y();
+        correctedPos.z() = Pos.z();
+        correctedPos = correctedRot * correctedPos;
+        
+        // rot = rot * rotFix;
         Mat tran = Mat(3, 1, CV_64FC1, &(pose.t->data));
         aprilTagRelativePose = Mat(4, 4, CV_64FC1);
-        aprilTagRelativePose.at<double>(0, 0) = rot.at<double>(0, 0);
-        aprilTagRelativePose.at<double>(0, 1) = rot.at<double>(0, 1);
-        aprilTagRelativePose.at<double>(0, 2) = rot.at<double>(0, 2);
-        aprilTagRelativePose.at<double>(1, 0) = rot.at<double>(1, 0);
-        aprilTagRelativePose.at<double>(1, 1) = rot.at<double>(1, 1);
-        aprilTagRelativePose.at<double>(1, 2) = rot.at<double>(1, 2);
-        aprilTagRelativePose.at<double>(2, 0) = rot.at<double>(2, 0);
-        aprilTagRelativePose.at<double>(2, 1) = rot.at<double>(2, 1);
-        aprilTagRelativePose.at<double>(2, 2) = rot.at<double>(2, 2);
+        aprilTagRelativePose.at<double>(0, 0) = correctedRot(0, 0);
+        aprilTagRelativePose.at<double>(0, 1) = correctedRot(0, 1);
+        aprilTagRelativePose.at<double>(0, 2) = correctedRot(0, 2);
+        aprilTagRelativePose.at<double>(1, 0) = correctedRot(1, 0);
+        aprilTagRelativePose.at<double>(1, 1) = correctedRot(1, 1);
+        aprilTagRelativePose.at<double>(1, 2) = correctedRot(1, 2);
+        aprilTagRelativePose.at<double>(2, 0) = correctedRot(2, 0);
+        aprilTagRelativePose.at<double>(2, 1) = correctedRot(2, 1);
+        aprilTagRelativePose.at<double>(2, 2) = correctedRot(2, 2);
 
-        aprilTagRelativePose.at<double>(0, 3) = rot.at<double>(0, 0);
-        aprilTagRelativePose.at<double>(1, 3) = rot.at<double>(1, 0);
-        aprilTagRelativePose.at<double>(2, 3) = rot.at<double>(2, 0);
+        aprilTagRelativePose.at<double>(0, 3) = correctedPos(0);
+        aprilTagRelativePose.at<double>(1, 3) = correctedPos(1);
+        aprilTagRelativePose.at<double>(2, 3) = correctedPos(2);
 
         aprilTagRelativePose.at<double>(3, 0) = 0;
         aprilTagRelativePose.at<double>(3, 1) = 0;

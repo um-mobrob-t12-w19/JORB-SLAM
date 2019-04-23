@@ -75,47 +75,43 @@ void Server::Run() {
     std::vector<MapPoint*> mappointsSeqA = clients[0]->mpMap->GetAllMapPoints();
     std::vector<MapPoint*> mappointsSeqB = clients[1]->mpMap->GetAllMapPoints();
 
-    std::cout << "Ready to insert items..." << std::endl;
-    cin.ignore();
+    // std::cout << "Ready to insert items..." << std::endl;
+    // cin.ignore();
 
     // while(!stopped) {
     for(KeyFrame* keyframe : keyframesSeqA) {
         InsertNewKeyFrame(keyframe, 0, SEQA);
-        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqA) {
         CopyKeyFrameMappoints(keyframe);
-        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqA) {
         CopyKeyFrameConnections(keyframe);
-        std::this_thread::sleep_for(25ms);
     }
+
+    globalMap->mvpKeyFrameOrigins = globalMap->GetAllKeyFrames();
 
     int offset = globalMap->GetAllKeyFrames().size();
     for(KeyFrame* keyframe : keyframesSeqB) {
         InsertNewKeyFrame(keyframe, offset, SEQB);
-        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqB) {
         CopyKeyFrameMappoints(keyframe);
-        std::this_thread::sleep_for(25ms);
     }
 
     for(KeyFrame* keyframe : keyframesSeqB) {
         CopyKeyFrameConnections(keyframe);
-        std::this_thread::sleep_for(25ms);
     }
 
     std::cout << "adding april tag connections" << std::endl;
 
     FindAprilTagConnections();
 
-    std::cout << "Finished inserting items. Press enter to optimize..." << std::endl;
-    cin.ignore();
+    // std::cout << "Finished inserting items. Press enter to optimize..." << std::endl;
+    // cin.ignore();
 
     globalMappingThread = new std::thread(&GlobalLoopClosing::Run, globalLoopClosing);
     
@@ -127,7 +123,11 @@ void Server::Run() {
     std::cout << "Press enter to run final global bundle adjustment..." << std::endl;
     cin.ignore();
 
-    globalLoopClosing->RunGlobalBundleAdjustment(0);
+    globalLoopClosing->RunGlobalBundleAdjustment(1);
+
+
+    std::cout << "Finished!" << std::endl;
+    cin.ignore();
 
 }
 

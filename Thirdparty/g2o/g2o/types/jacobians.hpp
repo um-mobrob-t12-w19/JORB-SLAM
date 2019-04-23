@@ -4,6 +4,7 @@
 #include <cmath>
 
 #include "se3_ops.h"
+#include "se3quat.h"
 
 using std::cos;
 using std::sin;
@@ -11,13 +12,14 @@ using std::pow;
 
 namespace g2o {
 
-using Vector6d = Eigen::Matrix<double, 6, 1>;
-using Matrix6d = Eigen::Matrix<double, 6, 6>;
-
 Eigen::Matrix3d JacobianLeftSO3(const Eigen::Vector3d& phi) {
     double theta = phi.norm();
     Eigen::Matrix3d A = skew(phi);
-    return Eigen::Matrix3d::Identity() + (1 - cos(theta)) / (theta * theta) * A + (theta - sin(theta)) / (theta * theta * theta) * A * A;
+    Matrix3d J_l = Eigen::Matrix3d::Identity() + (1 - cos(theta)) / (theta * theta) * A + (theta - sin(theta)) / (theta * theta * theta) * A * A;
+    if(J_l.hasNaN()) {
+        return Matrix3d::Zero();
+    }
+    return J_l;
 }
 
 Eigen::Matrix3d JacobianLeftInvSO3(const Eigen::Vector3d& phi) {
@@ -43,5 +45,42 @@ Matrix6d JacobianLeftSE3(const Vector6d& twist) {
     J_l.block<3, 3>(3, 0) = Q;
     J_l.block<3, 3>(3, 3) = JacobianLeftSO3(phi);
 
+    if(J_l.hasNaN()) {
+        return Matrix6d::Zero();
+    }
+
     return J_l;
 }
+
+Matrix6d JacobianLeftInvSE3(const Vector6d& twist) {
+    Matrix6d J_l_inv = JacobianLeftSE3(twist).inverse();
+    std::cout << "Left inverse: " << std::endl;
+    std::cout << J_l_inv << std::endl;
+    if(J_l_inv.hasNaN()) {
+        return Matrix6d::Zero();
+    }
+    return J_l_inv;
+}
+
+Matrix6d JacobianRightSE3(const Vector6d& twist) {
+    Matrix6d J_r = (SE3Quat::exp(-twist)).adj() * JacobianLeftSE3(twist);
+    if(J_r.hasNaN()) {
+        return Matrix6d::Zero();
+    }
+
+    return J_r;
+}
+
+Matrix6d JacobianRightInvSE3(const Vector6d& twist) {
+    Matrix6d J_r_inv = JacobianRightSE3(twist).inverse();
+    std::cout << "Left inverse: " << std::endl;
+    std::cout << J_r_inv << std::endl;
+    if(J_r_inv.hasNaN()) {
+        return Matrix6d::Zero();
+    }
+
+    return J_r_inv;
+}
+
+}
+

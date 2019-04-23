@@ -31,8 +31,8 @@
 
 using namespace std;
 
-constexpr double start_time = 90;
-constexpr double end_time = 110;
+constexpr double start_time = 105;
+constexpr double end_time = 107;
 constexpr double sleep_multiplier = 1; // Run at half speed
 
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,

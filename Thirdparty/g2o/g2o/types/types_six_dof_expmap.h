@@ -50,9 +50,6 @@ void init();
 
 using namespace Eigen;
 
-typedef Matrix<double, 6, 6> Matrix6d;
-
-
 /**
  * \brief SE3 Vertex parameterized internally with a transformation matrix
  and externally with its exponential map
@@ -215,7 +212,7 @@ class EdgeAprilTag : public BaseBinaryEdge<6, SE3Quat, VertexSE3Expmap, VertexSE
 
     void computeError();
 
-    virtual void linearizeOplus() override;
+    // virtual void linearizeOplus() override;
 };
 
 

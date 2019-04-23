@@ -649,7 +649,7 @@ void LocalMapping::KeyFrameCulling()
     for(vector<KeyFrame*>::iterator vit=vpLocalKeyFrames.begin(), vend=vpLocalKeyFrames.end(); vit!=vend; vit++)
     {
         KeyFrame* pKF = *vit;
-        if(pKF->mnId==0)
+        if(pKF->mnId==0 || pKF->detectedAprilTag)
             continue;
         const vector<MapPoint*> vpMapPoints = pKF->GetMapPointMatches();
 
