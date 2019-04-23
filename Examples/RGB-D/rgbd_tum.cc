@@ -31,8 +31,8 @@
 
 using namespace std;
 
-constexpr double start_time = 55;
-constexpr double end_time = 58;
+constexpr double start_time = 90;
+constexpr double end_time = 110;
 constexpr double sleep_multiplier = 1; // Run at half speed
 
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
@@ -91,8 +91,8 @@ int main(int argc, char **argv)
     cout << "Start processing sequence ..." << endl;
     cout << "Images in the sequence: " << nImages << endl << endl;
 
-    cout << "Press enter to start" << std::endl;
-    cin.ignore();
+    // cout << "Press enter to start" << std::endl;
+    // cin.ignore();
     // Main loop
     cv::Mat imRGB1, imD1, imRGB2, imD2;
     size_t seqAIdx = 0;

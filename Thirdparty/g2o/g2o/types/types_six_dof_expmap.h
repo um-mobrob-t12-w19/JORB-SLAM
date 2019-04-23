@@ -30,6 +30,7 @@
 // Added EdgeStereoSE3ProjectXYZ (project using focal_length in x,y directions)
 // Added EdgeSE3ProjectXYZOnlyPose (unary edge to optimize only the camera pose)
 // Added EdgeStereoSE3ProjectXYZOnlyPose (unary edge to optimize only the camera pose)
+// Modified by Martin Deegan (2019)
 
 #ifndef G2O_SIX_DOF_TYPES_EXPMAP
 #define G2O_SIX_DOF_TYPES_EXPMAP
@@ -199,6 +200,22 @@ public:
 
   Vector3d Xw;
   double fx, fy, cx, cy, bf;
+};
+
+class EdgeAprilTag : public BaseBinaryEdge<6, SE3Quat, VertexSE3Expmap, VertexSE3Expmap>
+{
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+    EdgeAprilTag();
+
+    bool read(std::istream& is);
+
+    bool write(std::ostream& os) const;
+
+    void computeError();
+
+    virtual void linearizeOplus() override;
 };
 
 

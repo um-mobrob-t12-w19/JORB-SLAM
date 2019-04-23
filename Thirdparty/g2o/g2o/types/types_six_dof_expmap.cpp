@@ -364,4 +364,36 @@ void EdgeStereoSE3ProjectXYZOnlyPose::linearizeOplus() {
 }
 
 
+EdgeAprilTag::EdgeAprilTag() : BaseBinaryEdge<6, SE3Quat, VertexSE3Expmap, VertexSE3Expmap>() {
+}
+
+bool EdgeAprilTag::read(std::istream& is){
+  return true;
+}
+
+bool EdgeAprilTag::write(std::ostream& os) const {
+  return os.good();
+}
+
+void EdgeAprilTag::computeError()  {
+  const VertexSE3Expmap* v1 = static_cast<const VertexSE3Expmap*>(_vertices[0]);
+  const VertexSE3Expmap* v2 = static_cast<const VertexSE3Expmap*>(_vertices[1]);
+  SE3Quat X_A_G = v1->estimate();
+  SE3Quat X_B_G = v2->estimate();
+  SE3Quat X_A_B = _measurement;
+  _error = (X_A_G.inverse() * X_B_G * X_A_B).log();
+}
+
+void EdgeAprilTag::linearizeOplus() {
+  const VertexSE3Expmap* v1 = static_cast<const VertexSE3Expmap*>(_vertices[0]);
+  const VertexSE3Expmap* v2 = static_cast<const VertexSE3Expmap*>(_vertices[1]);
+  SE3Quat X_A_G = v1->estimate();
+  SE3Quat X_B_G = v2->estimate();
+
+  _jacobianOplusXi =
+
+}
+
+
+
 } // end namespace

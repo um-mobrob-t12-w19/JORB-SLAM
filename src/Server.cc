@@ -123,6 +123,12 @@ void Server::Run() {
         globalLoopClosing->InsertKeyFrame(keyframe);
         std::this_thread::sleep_for(50ms);
     }
+
+    std::cout << "Press enter to run final global bundle adjustment..." << std::endl;
+    cin.ignore();
+
+    globalLoopClosing->RunGlobalBundleAdjustment(0);
+
 }
 
 void Server::InsertNewKeyFrame(KeyFrame* keyframe, int offset, int sequence) {
