@@ -1,1 +1,1 @@
-./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.bin Examples/RGB-D/EECSDatasetConfig_blue.yaml datasets/EECS_3_blue datasets/BlueAssoc.txt Examples/RGB-D/EECSDatasetConfig_orange.yaml datasets/EECS_3_orange datasets/OrangeAssoc.txt Examples/ServerConfig.yaml
+./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.bin Examples/RGB-D/EECSDatasetConfig_blue.yaml datasets/EECSBlue datasets/EECSBlue_Assoc.txt Examples/RGB-D/EECSDatasetConfig_orange.yaml datasets/EECSOrange datasets/EECSOrange_Assoc.txt Examples/ServerConfig.yaml

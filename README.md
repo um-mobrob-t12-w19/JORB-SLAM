@@ -42,7 +42,7 @@ This will create **libORB_SLAM2.so**  at *lib* folder and the executables **rgbd
 ./Examples/Stereo/stereo_kitti Vocabulary/ORBvoc.txt Examples/Stereo/KITTIX.yaml PATH_TO_DATASET_FOLDER/dataset/sequences/SEQUENCE_NUMBER
 ```
 
-### Included data sequence
+### Sample data sequence
 We included a sample data sequence out of box under folder `datasets`, this sample is cut out from sequence 00 of KITTI odometry dataset. Unzip file `kitti_odometry_00.zip` into `dataset/kitti_odometry_00` and execute `run_kitti.sh`, then you can find the system running on the sample sequence.
 
 ## (RGBD) TUM Dataset
@@ -60,6 +60,9 @@ We included a sample data sequence out of box under folder `datasets`, this samp
   ```
   ./Examples/RGB-D/rgbd_tum Vocabulary/ORBvoc.txt Examples/RGB-D/TUMX.yaml PATH_TO_SEQUENCE_FOLDER ASSOCIATIONS_FILE
   ```
+### Sample data sequence
+We included a sample data sequence out of box under folder `datasets`, this sample is cut out from sequence 00 of KITTI odometry dataset. Unzip file `EECSBlue.zip` into `dataset/EECSBlue`, `EECSOrange.zip` into `dataset/EECSOrange` and execute `run_eecs.sh`, then you can find the system running on the sample sequence. The final cloud view shows convisibility constraints in green lines and April tags constraint in red lines.
+
 ## Processing your own sequences
 You will need to create a settings file with the calibration of your camera. See the settings file provided for the TUM and KITTI datasets for monocular, stereo and RGB-D cameras. We use the calibration model of OpenCV, and you can do calibration with ROS calibration package or MATLAB Calibration App. RGB-D input must be synchronized and depth registered. Specifically for Intel Realsense Camera data bag, we provide [Python scripts](https://github.com/um-mobrob-t12-w19/ORB_SLAM2/tree/master/Examples/RGB-D/utils) to convert the data bag to TUM dataset format.
 
