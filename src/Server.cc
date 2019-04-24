@@ -75,9 +75,6 @@ void Server::Run() {
     std::vector<MapPoint*> mappointsSeqA = clients[0]->mpMap->GetAllMapPoints();
     std::vector<MapPoint*> mappointsSeqB = clients[1]->mpMap->GetAllMapPoints();
 
-    // std::cout << "Ready to insert items..." << std::endl;
-    // cin.ignore();
-
     // while(!stopped) {
     for(KeyFrame* keyframe : keyframesSeqA) {
         InsertNewKeyFrame(keyframe, 0, SEQA);
@@ -106,12 +103,10 @@ void Server::Run() {
         CopyKeyFrameConnections(keyframe);
     }
 
-    std::cout << "adding april tag connections" << std::endl;
-
     FindAprilTagConnections();
 
-    // std::cout << "Finished inserting items. Press enter to optimize..." << std::endl;
-    // cin.ignore();
+    std::cout << "Finished inserting items. [Press enter to find location loop closures]" << std::endl;
+    cin.ignore();
 
     globalMappingThread = new std::thread(&GlobalLoopClosing::Run, globalLoopClosing);
     
@@ -120,7 +115,7 @@ void Server::Run() {
         std::this_thread::sleep_for(50ms);
     }
 
-    std::cout << "Press enter to run final global bundle adjustment..." << std::endl;
+    std::cout << "[Press enter to run final global bundle adjustment]" << std::endl;
     cin.ignore();
 
     globalLoopClosing->RunGlobalBundleAdjustment(1);

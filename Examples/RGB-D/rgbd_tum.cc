@@ -31,8 +31,8 @@
 
 using namespace std;
 
-constexpr double start_time = 105;
-constexpr double end_time = 107;
+constexpr double start_time = 0;
+constexpr double end_time = 100;
 constexpr double sleep_multiplier = 1; // Run at half speed
 
 void LoadImages(const string &strAssociationFilename, vector<string> &vstrImageFilenamesRGB,
@@ -61,6 +61,7 @@ int main(int argc, char **argv)
 
     // Check consistency in the number of images and depthmaps
     int nImages = vstrImageFilenamesRGB1.size() < vstrImageFilenamesRGB2.size() ? vstrImageFilenamesRGB1.size(): vstrImageFilenamesRGB2.size(); // Select minimum
+    std::cout << vstrImageFilenamesRGB1.size() << ' ' << vstrImageFilenamesD1.size() << ' ' << vstrImageFilenamesRGB2.size() << ' ' << vstrImageFilenamesD2.size() << std::endl;
     if(vstrImageFilenamesRGB1.empty())
     {
         cerr << endl << "No images found in provided path." << endl;
@@ -163,10 +164,8 @@ int main(int argc, char **argv)
     }
 
     // Wait for the clients to finish processing
-    std::cout << "Finished running clients. Press enter to run server" << std::endl;
-    std::cin.ignore();
-
-
+    std::this_thread::sleep_for(5s);
+    
     // Disable local mapping and loop closing threads. Keeps viewer alive
     SLAM1->ActivateLocalizationMode();
     SLAM2->ActivateLocalizationMode();

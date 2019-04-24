@@ -212,7 +212,7 @@ class EdgeAprilTag : public BaseBinaryEdge<6, SE3Quat, VertexSE3Expmap, VertexSE
 
     void computeError();
 
-    // virtual void linearizeOplus() override;
+    virtual void linearizeOplus() override;
 };
 
 

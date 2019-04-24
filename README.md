@@ -19,7 +19,7 @@ Clone the repository:
 git clone https://github.com/raulmur/ORB_SLAM2.git ORB_SLAM2
 ```
 
-We provide a script `build.sh` to build the *Thirdparty* libraries and *ORB-SLAM2*. Before run the build script, please turn to `install_apriltags.sh` and `install_pangolin.sh` for **Pangolin** and **AprilTags** installation, which are two dependencies of this program:
+We provide a script `build.sh` to build the *Thirdparty* libraries and *ORB-SLAM2*. Before running the build script, please turn to `install_apriltags.sh` and `install_pangolin.sh` for **Pangolin** and **AprilTags** installation, which are two dependencies of this program:
 ```
 cd ORB_SLAM2
 
@@ -32,7 +32,9 @@ chmod +x build.sh
 
 This will create **libORB_SLAM2.so**  at *lib* folder and the executables **rgbd_tum** and **stereo_kitti** in *Examples* folder.
 
-# Multi-agents Examples
+# Running Examples
+
+Note: Follow the instructions in the command line when running.
 
 ## (Stereo) KITTI Dataset
 

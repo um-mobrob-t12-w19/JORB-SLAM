@@ -43,7 +43,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Release
 num_procs_avail=$(($(grep -c ^processor /proc/cpuinfo)-1))
 make stereo_kitti -j$((num_procs_avail > 1 ? num_procs_avail : 1))
 make rgbd_tum -j$((num_procs_avail > 1 ? num_procs_avail : 1))
+make binarize
 cd ..
 
-# echo "Converting vocabulary to binary"
-# ./build/binarize
+echo "Converting vocabulary to binary"
+./build/binarize

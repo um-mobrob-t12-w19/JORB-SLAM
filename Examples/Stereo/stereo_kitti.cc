@@ -79,8 +79,6 @@ int main(int argc, char **argv)
     cout << endl << "-------" << endl;
     cout << "Start processing sequence ..." << endl;
     cout << "Images in the sequence: " << nImages << endl;   
-    cout << "[Press Enter to continue]: "<< endl << endl;   
-    std::cin.ignore();
 
     // Main loop
     cv::Mat imLeftA, imRightA, imLeftB, imRightB;
@@ -158,9 +156,7 @@ int main(int argc, char **argv)
     }
 
     // Wait for the clients to finish processing
-    std::cout << "Finished running clients. [Press enter to run server]" << std::endl;
-    std::cin.ignore();
-
+    std::this_thread::sleep_for(5s);
 
     // Disable local mapping and loop closing threads. Keeps viewer alive
     SLAM1->ActivateLocalizationMode();

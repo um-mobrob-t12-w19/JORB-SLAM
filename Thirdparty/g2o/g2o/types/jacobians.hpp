@@ -54,8 +54,6 @@ Matrix6d JacobianLeftSE3(const Vector6d& twist) {
 
 Matrix6d JacobianLeftInvSE3(const Vector6d& twist) {
     Matrix6d J_l_inv = JacobianLeftSE3(twist).inverse();
-    std::cout << "Left inverse: " << std::endl;
-    std::cout << J_l_inv << std::endl;
     if(J_l_inv.hasNaN()) {
         return Matrix6d::Zero();
     }
@@ -73,8 +71,6 @@ Matrix6d JacobianRightSE3(const Vector6d& twist) {
 
 Matrix6d JacobianRightInvSE3(const Vector6d& twist) {
     Matrix6d J_r_inv = JacobianRightSE3(twist).inverse();
-    std::cout << "Left inverse: " << std::endl;
-    std::cout << J_r_inv << std::endl;
     if(J_r_inv.hasNaN()) {
         return Matrix6d::Zero();
     }
