@@ -30,6 +30,11 @@ chmod +x build.sh
 ./build.sh
 ```
 
+If you don't run `install_apriltags.sh`, you need to install `libyaml-cpp` with 
+```
+sudo apt install libyaml-cpp-dev
+```
+
 This will create **libORB_SLAM2.so**  at *lib* folder and the executables **rgbd_tum** and **stereo_kitti** in *Examples* folder.
 
 # Running Examples

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt install libyaml-cpp-dev -y
+
 cd /tmp
 git clone https://github.com/AprilRobotics/apriltags.git apriltags
 cd apriltags
